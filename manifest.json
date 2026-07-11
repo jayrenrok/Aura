@@ -1,0 +1,17 @@
+{
+  "name": "KYC Aura — Biometric Auth Demo",
+  "short_name": "KYC Aura",
+  "description": "Multimodal server-side challenge biometric authentication demo",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0A0E1A",
+  "theme_color": "#0A0E1A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%230A0E1A'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%2334E7E7' stroke-width='6'/%3E%3Ccircle cx='50' cy='50' r='12' fill='%23E14DFF'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
