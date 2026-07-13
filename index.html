@@ -29,71 +29,61 @@
   html,body{
     background:var(--bg); color:var(--text);
     font-family:'Space Grotesk',sans-serif;
-    height:100%; overflow-x:hidden;
+    height:100%; overflow:hidden;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
   }
   #app{
-    max-width:520px; margin:0 auto; min-height:100vh;
+    max-width:520px; margin:0 auto; height:100vh;
     display:flex; flex-direction:column;
-    padding:20px 18px 40px;
+    padding:16px 16px 0;
+    overflow:hidden;
   }
   header{
-    display:flex; align-items:center; gap:12px; margin-bottom:22px;
+    display:flex; align-items:center; gap:12px; margin-bottom:8px;
+    flex-shrink:0;
   }
   .aura-mark{
-    width:34px; height:34px; border-radius:50%;
+    width:30px; height:30px; border-radius:50%;
     background: conic-gradient(from 0deg, var(--aura), var(--spectral-magenta), var(--spectral-yellow), var(--aura));
     animation: spin 6s linear infinite;
     box-shadow: 0 0 18px rgba(52,231,231,0.5);
   }
   @keyframes spin{ to{ transform:rotate(360deg); } }
-  header h1{ font-size:19px; font-weight:700; letter-spacing:0.2px;}
-  header p{ font-size:11px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; letter-spacing:0.5px; text-transform:uppercase;}
+  header h1{ font-size:17px; font-weight:700; }
+  header p{ font-size:10px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; letter-spacing:0.5px; text-transform:uppercase;}
 
-  .card{
-    background:var(--panel); border:1px solid var(--line); border-radius:16px;
-    padding:20px; margin-bottom:16px;
-  }
-  .screen{ display:none; flex:1; flex-direction:column; }
+  .screen{ display:none; flex-direction:column; height:100%; }
   .screen.active{ display:flex; }
 
-  .eyebrow{
-    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--aura);
-    text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;
-  }
-  h2{ font-size:22px; font-weight:600; margin-bottom:8px; }
-  .sub{ color:var(--text-dim); font-size:14px; line-height:1.5; margin-bottom:18px;}
-
   .video-wrap{
-    position:relative; width:100%; aspect-ratio:3/4; border-radius:20px;
+    position:relative; width:100%; aspect-ratio:3/4; border-radius:16px;
     overflow:hidden; background:#000; border:1px solid var(--line);
-    margin-bottom:16px;
+    margin-bottom:10px; flex-shrink:0;
   }
   video{ width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
   canvas.overlay{ position:absolute; inset:0; width:100%; height:100%; transform:scaleX(-1);}
   
   .ring{
-    position:absolute; inset:0; border-radius:20px; pointer-events:none;
+    position:absolute; inset:0; border-radius:16px; pointer-events:none;
     border:3px solid var(--aura-dim); transition: all .25s ease;
   }
   .ring.tracking{ border-color:var(--aura); box-shadow: inset 0 0 40px rgba(52,231,231,0.25), 0 0 24px rgba(52,231,231,0.35);}
   .ring.pass{ border-color:var(--pass); box-shadow: inset 0 0 40px rgba(60,230,139,0.3), 0 0 24px rgba(60,230,139,0.4);}
   
   .status-chip{
-    position:absolute; top:12px; left:12px; padding:6px 12px; border-radius:20px;
-    background:rgba(10,14,26,0.75); backdrop-filter:blur(6px);
-    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--aura);
-    border:1px solid var(--aura-dim); display:flex; align-items:center; gap:6px;
+    position:absolute; top:10px; left:10px; padding:4px 10px; border-radius:16px;
+    background:rgba(10,14,26,0.8); backdrop-filter:blur(6px);
+    font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--aura);
+    border:1px solid var(--aura-dim); display:flex; align-items:center; gap:5px;
     z-index:15;
   }
-  .dot-pulse{ width:6px; height:6px; border-radius:50%; background:var(--aura); animation:pulse 1.2s infinite;}
+  .dot-pulse{ width:5px; height:5px; border-radius:50%; background:var(--aura); animation:pulse 1.2s infinite;}
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-  /* ============================================================
-     PRECISE FACIAL GRID OVERLAY — LARGER OVAL (85%)
-     ============================================================ */
+  /* FACIAL GRID OVERLAY */
   .face-grid{
-    position:absolute; inset:0; border-radius:20px; pointer-events:none; z-index:5;
+    position:absolute; inset:0; border-radius:16px; pointer-events:none; z-index:5;
   }
   .face-grid svg{
     width:100%; height:100%; display:block;
@@ -111,51 +101,46 @@
     fill:rgba(255,92,108,0.05);
   }
   .face-grid .guide-line{
-    stroke: rgba(255,255,255,0.15); stroke-width:1; stroke-dasharray:4 4;
+    stroke: rgba(255,255,255,0.12); stroke-width:1; stroke-dasharray:4 4;
   }
   .face-grid .guide-line.primary{
     stroke: rgba(255,255,255,0.2); stroke-width:1.5; stroke-dasharray:none;
   }
   .face-grid .guide-line.dim{
-    stroke: rgba(255,255,255,0.06); stroke-width:0.5; stroke-dasharray:2 4;
+    stroke: rgba(255,255,255,0.05); stroke-width:0.5; stroke-dasharray:2 4;
   }
   .face-grid .label{
     font-family:'JetBrains Mono',monospace; font-size:6px;
-    fill: rgba(255,255,255,0.2); letter-spacing:0.5px;
-  }
-  .face-grid .label.active{
-    fill: rgba(52,231,231,0.4);
+    fill: rgba(255,255,255,0.15); letter-spacing:0.5px;
   }
 
   .align-status{
-    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
-    font-family:'JetBrains Mono',monospace; font-size:10px;
-    padding:4px 14px; border-radius:12px; background:rgba(0,0,0,0.6);
+    position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+    font-family:'JetBrains Mono',monospace; font-size:9px;
+    padding:3px 12px; border-radius:10px; background:rgba(0,0,0,0.6);
     border:1px solid var(--line); z-index:15;
-    display:flex; align-items:center; gap:8px;
-    transition: all 0.3s ease;
+    display:flex; align-items:center; gap:6px;
   }
   .align-status .dot{
-    width:6px; height:6px; border-radius:50%; display:inline-block;
+    width:5px; height:5px; border-radius:50%; display:inline-block;
   }
   .align-status .dot.good{ background:var(--pass); }
   .align-status .dot.fair{ background:var(--retry); }
   .align-status .dot.poor{ background:var(--fail); animation:blink 0.8s infinite; }
   @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.2;} }
 
-  /* RELAXING BLUE TARGET DOT (#91B2C7) */
   .target{
-    position:absolute; width:32px; height:32px; border-radius:50%;
+    position:absolute; width:28px; height:28px; border-radius:50%;
     background: var(--relaxing-blue);
-    box-shadow: 0 0 40px rgba(145,178,199,0.6), 0 0 80px rgba(145,178,199,0.3);
+    box-shadow: 0 0 30px rgba(145,178,199,0.5), 0 0 60px rgba(145,178,199,0.2);
     transform:translate(-50%,-50%);
-    transition: left 0.1s ease, top 0.1s ease;
+    transition: left 0.08s ease, top 0.08s ease;
     z-index:10;
     border:2px solid rgba(255,255,255,0.3);
   }
   .target .pulse-ring{
-    position:absolute; inset:-8px; border-radius:50%;
-    border:2px solid rgba(145,178,199,0.3);
+    position:absolute; inset:-6px; border-radius:50%;
+    border:2px solid rgba(145,178,199,0.25);
     animation: pulse-ring 1.5s ease-in-out infinite;
   }
   @keyframes pulse-ring{
@@ -164,8 +149,8 @@
   }
 
   .pupil-track{
-    position:absolute; width:8px; height:8px; border-radius:50%;
-    background:#FFD84D; box-shadow:0 0 12px #FFD84D;
+    position:absolute; width:6px; height:6px; border-radius:50%;
+    background:#FFD84D; box-shadow:0 0 10px #FFD84D;
     transform:translate(-50%,-50%); z-index:6;
     pointer-events:none; transition: all 0.05s ease;
   }
@@ -178,43 +163,181 @@
   }
 
   button{
-    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px;
-    border:none; border-radius:12px; padding:15px; cursor:pointer;
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px;
+    border:none; border-radius:12px; padding:14px; cursor:pointer;
     width:100%; transition: transform .12s ease, opacity .12s ease;
   }
   button:active{ transform:scale(0.97); }
   .btn-primary{ background:var(--aura); color:#04191A; }
   .btn-primary:disabled{ opacity:0.35; }
-  .btn-ghost{ background:transparent; border:1px solid var(--line); color:var(--text); margin-top:10px;}
+  .btn-ghost{ background:transparent; border:1px solid var(--line); color:var(--text); margin-top:8px;}
 
-  .scorebar{ margin:10px 0; }
-  .scorebar-label{ display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:12px; margin-bottom:5px; color:var(--text-dim);}
-  .scorebar-track{ height:8px; background:var(--line); border-radius:6px; overflow:hidden;}
+  .scorebar{ margin:8px 0; }
+  .scorebar-label{ display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:11px; margin-bottom:3px; color:var(--text-dim);}
+  .scorebar-track{ height:6px; background:var(--line); border-radius:6px; overflow:hidden;}
   .scorebar-fill{ height:100%; border-radius:6px; transition: width .6s ease; }
 
-  .keypad{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0;}
-  .key{
-    aspect-ratio:1; border-radius:14px; background:var(--panel); border:1px solid var(--line);
-    display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:600;
-    font-family:'JetBrains Mono',monospace; color:var(--text); cursor:pointer; user-select:none;
-  }
-  .key.hit{ background:var(--aura); color:#04191A; border-color:var(--aura); }
-  .pin-dots{ display:flex; gap:10px; justify-content:center; margin-bottom:18px;}
-  .pin-dot{ width:14px; height:14px; border-radius:50%; border:2px solid var(--line); }
-  .pin-dot.filled{ background:var(--aura); border-color:var(--aura); }
+  .decision-icon{ font-size:44px; text-align:center; margin:4px 0 10px;}
+  .decision-title{ text-align:center; font-size:22px; font-weight:700; margin-bottom:2px;}
+  .decision-sub{ text-align:center; color:var(--text-dim); font-size:13px; margin-bottom:16px;}
 
-  .decision-icon{ font-size:48px; text-align:center; margin:6px 0 14px;}
-  .decision-title{ text-align:center; font-size:24px; font-weight:700; margin-bottom:4px;}
-  .decision-sub{ text-align:center; color:var(--text-dim); font-size:13px; margin-bottom:20px;}
-
-  footer.note{ font-size:11px; color:var(--text-dim); text-align:center; margin-top:auto; padding-top:24px; line-height:1.5;}
+  footer.note{ font-size:10px; color:var(--text-dim); text-align:center; margin-top:auto; padding-top:12px; line-height:1.4; flex-shrink:0;}
   .hidden{ display:none !important; }
 
   #target-counter{
-    position:absolute; bottom:50px; left:50%; transform:translateX(-50%);
-    background:rgba(0,0,0,0.7); color:#fff; padding:4px 12px; border-radius:12px;
-    font-size:12px; font-family:'JetBrains Mono',monospace;
+    position:absolute; bottom:44px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,0.7); color:#fff; padding:3px 10px; border-radius:10px;
+    font-size:11px; font-family:'JetBrains Mono',monospace;
     display:none; border:1px solid var(--line); z-index:12;
+  }
+
+  /* ============================================================
+     FULL-SCREEN GAZE-BASED KEYPAD
+     ============================================================ */
+  .keypad-full{
+    flex:1;
+    display:grid;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+    gap:8px;
+    padding:8px 0 12px;
+    min-height:0;
+  }
+  .keypad-row{
+    display:grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap:8px;
+  }
+  .key{
+    background:var(--panel);
+    border:2px solid var(--line);
+    border-radius:16px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition: all 0.15s ease;
+    position:relative;
+    min-height:0;
+    aspect-ratio:auto;
+    padding:4px 0;
+  }
+  .key .number{
+    font-size:28px;
+    font-weight:600;
+    font-family:'JetBrains Mono',monospace;
+    color:var(--text);
+    line-height:1.2;
+  }
+  .key .letters{
+    font-size:9px;
+    color:var(--text-dim);
+    font-family:'Space Grotesk',sans-serif;
+    letter-spacing:1px;
+    margin-top:1px;
+  }
+  .key .sub-label{
+    font-size:10px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    letter-spacing:0.5px;
+  }
+  .key.highlight{
+    border-color:var(--aura);
+    background:rgba(52,231,231,0.12);
+    box-shadow: 0 0 30px rgba(52,231,231,0.15);
+  }
+  .key.highlight .number{ color:var(--aura); }
+  .key.highlight .letters{ color:var(--aura); }
+  .key.highlight .sub-label{ color:var(--aura); }
+  .key.selected{
+    border-color:var(--pass);
+    background:rgba(60,230,139,0.15);
+    box-shadow: 0 0 40px rgba(60,230,139,0.2);
+  }
+  .key.selected .number{ color:var(--pass); }
+  .key.selected .letters{ color:var(--pass); }
+  .key.selected .sub-label{ color:var(--pass); }
+  .key.action{
+    border-color:var(--aura-dim);
+  }
+  .key.action.highlight{
+    border-color:var(--retry);
+    background:rgba(255,194,77,0.12);
+    box-shadow: 0 0 30px rgba(255,194,77,0.15);
+  }
+  .key.action.highlight .number{ color:var(--retry); }
+  .key.action.highlight .sub-label{ color:var(--retry); }
+  .key.action.selected{
+    border-color:var(--pass);
+    background:rgba(60,230,139,0.15);
+  }
+  .key.action.selected .number{ color:var(--pass); }
+  .key.action.selected .sub-label{ color:var(--pass); }
+
+  .pin-display{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    padding:6px 0 4px;
+    flex-shrink:0;
+  }
+  .pin-dot{
+    width:16px;
+    height:16px;
+    border-radius:50%;
+    border:2px solid var(--line);
+    transition: all 0.2s ease;
+  }
+  .pin-dot.filled{
+    background:var(--aura);
+    border-color:var(--aura);
+    box-shadow: 0 0 12px rgba(52,231,231,0.3);
+  }
+  .pin-dot.active{
+    border-color:var(--aura);
+    animation: pulse-dot 1s ease-in-out infinite;
+  }
+  @keyframes pulse-dot{
+    0%,100%{ border-color:var(--aura); }
+    50%{ border-color:var(--aura-dim); }
+  }
+
+  .pin-status{
+    text-align:center;
+    font-size:13px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    flex-shrink:0;
+    min-height:20px;
+  }
+  .pin-status .highlight-text{ color:var(--aura); }
+
+  .keypad-container{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding:0 8px;
+    min-height:0;
+  }
+
+  .gaze-hint{
+    text-align:center;
+    font-size:11px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    flex-shrink:0;
+    padding:4px 0 2px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:6px;
+  }
+  .gaze-hint .blink-icon{
+    display:inline-block;
+    animation: blink-icon 1.2s ease-in-out infinite;
+  }
+  @keyframes blink-icon{
+    0%,100%{ opacity:1; }
+    50%{ opacity:0.2; }
   }
 </style>
 </head>
@@ -225,67 +348,51 @@
     <div class="aura-mark"></div>
     <div>
       <h1>KYC Aura</h1>
-      <p>Multimodal Auth Demo · v0.5</p>
+      <p>Multimodal Auth Demo · v0.6</p>
     </div>
   </header>
 
   <!-- SCREEN: INTRO -->
   <section class="screen active" id="screen-intro">
-    <div class="card">
-      <div class="eyebrow">Concept Prototype</div>
-      <h2>Face + Liveness + Scrambled PIN</h2>
-      <p class="sub">This demo runs entirely in your browser. Nothing is uploaded anywhere — your face data and PIN stay on this device only, in memory, for this session.</p>
+    <div class="card" style="background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:12px; flex-shrink:0;">
+      <div class="eyebrow" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--aura); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;">Concept Prototype</div>
+      <h2 style="font-size:22px; font-weight:600; margin-bottom:8px;">Face + Liveness + Scrambled PIN</h2>
+      <p class="sub" style="color:var(--text-dim); font-size:14px; line-height:1.5; margin-bottom:18px;">This demo runs entirely in your browser. Nothing is uploaded anywhere — your face data and PIN stay on this device only, in memory, for this session.</p>
       <button class="btn-primary" onclick="goTo('enroll-face')">Start: Enroll My Face</button>
     </div>
-    <div class="card">
-      <div class="eyebrow">What this proves</div>
-      <p class="sub" style="margin-bottom:0">✓ Live face tracking with precise grid overlay<br>✓ Real pupil tracking (not head proxy)<br>✓ Motion-based liveness challenge<br>✓ Session-scrambled PIN keypad</p>
+    <div class="card" style="background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px; flex-shrink:0;">
+      <div class="eyebrow" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--aura); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;">What this proves</div>
+      <p class="sub" style="color:var(--text-dim); font-size:14px; line-height:1.5; margin-bottom:0;">✓ Live face tracking with precise grid overlay<br>✓ Real pupil tracking (not head proxy)<br>✓ Motion-based liveness challenge<br>✓ Gaze-based PIN entry with blink confirmation</p>
     </div>
     <footer class="note">Research prototype — not production-grade biometric matching.</footer>
   </section>
 
   <!-- SCREEN: ENROLL FACE -->
   <section class="screen" id="screen-enroll-face">
-    <div class="eyebrow">Step 1 of 4</div>
-    <h2>Enroll Your Face</h2>
-    <p class="sub" id="enroll-instruction">Position your face inside the oval guide. Hold still for 3 seconds once the ring turns green.</p>
-    <div class="video-wrap">
+    <div class="eyebrow" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--aura); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:4px; flex-shrink:0;">Step 1 of 4</div>
+    <h2 style="font-size:20px; font-weight:600; margin-bottom:4px; flex-shrink:0;">Enroll Your Face</h2>
+    <p class="sub" id="enroll-instruction" style="color:var(--text-dim); font-size:13px; line-height:1.4; margin-bottom:8px; flex-shrink:0;">Position your face inside the oval guide. Hold still for 3 seconds once the ring turns green.</p>
+    <div class="video-wrap" style="flex:0 0 auto; aspect-ratio:3/4;">
       <video id="video-enroll" autoplay playsinline muted></video>
       <canvas class="overlay" id="canvas-enroll"></canvas>
       
-      <!-- LARGE FACIAL GRID OVERLAY (85% oval) -->
       <div class="face-grid" id="grid-enroll">
         <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-          <!-- OVAL: 85% of frame -->
           <ellipse class="boundary" id="boundary-enroll" cx="50" cy="50" rx="42" ry="48"/>
-          
-          <!-- Eye Level Line -->
           <line class="guide-line primary" x1="8" y1="38" x2="92" y2="38"/>
           <text class="label" x="2" y="41">EYE</text>
-          
-          <!-- Nose Center Line -->
           <line class="guide-line primary" x1="50" y1="4" x2="50" y2="96"/>
           <text class="label" x="52" y="6">NOSE</text>
-          
-          <!-- Mouth Line -->
           <line class="guide-line" x1="20" y1="62" x2="80" y2="62"/>
           <text class="label" x="2" y="65">MOUTH</text>
-          
-          <!-- Chin Baseline -->
           <line class="guide-line primary" x1="12" y1="96" x2="88" y2="96"/>
           <text class="label" x="2" y="99">CHIN</text>
-          
-          <!-- Distance guides -->
           <line class="guide-line dim" x1="8" y1="4" x2="8" y2="96"/>
           <line class="guide-line dim" x1="92" y1="4" x2="92" y2="96"/>
-          
-          <!-- Top and bottom markers -->
           <line class="guide-line dim" x1="8" y1="4" x2="92" y2="4"/>
           <text class="label" x="2" y="7">TOP</text>
           <line class="guide-line dim" x1="8" y1="96" x2="92" y2="96"/>
           <text class="label" x="2" y="99">BOTTOM</text>
-          
-          <!-- Corner brackets -->
           <path class="guide-line dim" d="M4,4 L12,4 L12,12"/>
           <path class="guide-line dim" d="M96,4 L88,4 L88,12"/>
           <path class="guide-line dim" d="M4,96 L12,96 L12,88"/>
@@ -300,29 +407,38 @@
         <span id="align-text-enroll">Position face</span>
       </div>
     </div>
-    <button class="btn-primary" id="btn-enroll-capture" disabled onclick="captureEnrollment()">Hold Still to Capture</button>
+    <button class="btn-primary" id="btn-enroll-capture" disabled onclick="captureEnrollment()" style="flex-shrink:0; margin-top:8px;">Hold Still to Capture</button>
   </section>
 
   <!-- SCREEN: SET PIN -->
   <section class="screen" id="screen-set-pin">
-    <div class="eyebrow">Step 2 of 4</div>
-    <h2>Set a 4-Digit PIN</h2>
-    <p class="sub">This will be your knowledge factor. Numbers will reshuffle position every time you log in.</p>
-    <div class="pin-dots" id="dots-set"></div>
-    <div class="keypad" id="keypad-set"></div>
-    <div class="sub" id="msg-set" style="text-align:center; min-height:18px;"></div>
+    <div class="eyebrow" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--aura); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:4px; flex-shrink:0;">Step 2 of 4</div>
+    <h2 style="font-size:20px; font-weight:600; margin-bottom:2px; flex-shrink:0;">Set Your PIN</h2>
+    <p class="sub" style="color:var(--text-dim); font-size:12px; line-height:1.4; margin-bottom:6px; flex-shrink:0;">Look at each number and blink to confirm. Delete removes last digit, Clear resets all.</p>
+    <div id="pin-set-container" style="flex:1; display:flex; flex-direction:column; min-height:0;">
+      <div class="pin-display" id="dots-set-container">
+        <div class="pin-dot" id="set-dot-1"></div>
+        <div class="pin-dot" id="set-dot-2"></div>
+        <div class="pin-dot" id="set-dot-3"></div>
+        <div class="pin-dot" id="set-dot-4"></div>
+      </div>
+      <div class="pin-status" id="set-pin-status">👁️ Look at a number and blink to select</div>
+      <div class="keypad-container">
+        <div class="gaze-hint">👁️ Gaze at key → highlight · 😉 Blink → confirm</div>
+        <div class="keypad-full" id="set-keypad"></div>
+      </div>
+    </div>
   </section>
 
   <!-- SCREEN: AUTH FACE -->
   <section class="screen" id="screen-auth-face">
-    <div class="eyebrow">Step 3 of 4 · Authenticate</div>
-    <h2>Face + Liveness Check</h2>
-    <p class="sub" id="auth-face-instructions">Position your face inside the oval guide. Then follow the Relaxing Blue dot with your eyes as it moves around the frame.</p>
-    <div class="video-wrap">
+    <div class="eyebrow" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--aura); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:4px; flex-shrink:0;">Step 3 of 4 · Authenticate</div>
+    <h2 style="font-size:20px; font-weight:600; margin-bottom:4px; flex-shrink:0;">Face + Liveness Check</h2>
+    <p class="sub" id="auth-face-instructions" style="color:var(--text-dim); font-size:13px; line-height:1.4; margin-bottom:8px; flex-shrink:0;">Position your face inside the oval guide. Then follow the Relaxing Blue dot with your eyes as it moves around the frame.</p>
+    <div class="video-wrap" style="flex:0 0 auto; aspect-ratio:3/4;">
       <video id="video-auth" autoplay playsinline muted></video>
       <canvas class="overlay" id="canvas-auth"></canvas>
       
-      <!-- LARGE FACIAL GRID OVERLAY (85% oval) -->
       <div class="face-grid" id="grid-auth">
         <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
           <ellipse class="boundary" id="boundary-auth" cx="50" cy="50" rx="42" ry="48"/>
@@ -359,21 +475,32 @@
       </div>
       <div id="target-counter">0 / 5</div>
     </div>
-    <button class="btn-primary" id="btn-start-liveness" disabled onclick="startLivenessChallenge()">Begin Liveness Challenge</button>
+    <button class="btn-primary" id="btn-start-liveness" disabled onclick="startLivenessChallenge()" style="flex-shrink:0; margin-top:8px;">Begin Liveness Challenge</button>
   </section>
 
   <!-- SCREEN: AUTH PIN -->
   <section class="screen" id="screen-auth-pin">
-    <div class="eyebrow">Step 4 of 4</div>
-    <h2>Enter Your PIN</h2>
-    <p class="sub">Layout is scrambled this session — matches your enrolled PIN pattern, not position.</p>
-    <div class="pin-dots" id="dots-auth"></div>
-    <div class="keypad" id="keypad-auth"></div>
+    <div class="eyebrow" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--aura); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:4px; flex-shrink:0;">Step 4 of 4</div>
+    <h2 style="font-size:20px; font-weight:600; margin-bottom:2px; flex-shrink:0;">Enter Your PIN</h2>
+    <p class="sub" style="color:var(--text-dim); font-size:12px; line-height:1.4; margin-bottom:6px; flex-shrink:0;">Look at each number and blink to confirm. Layout is scrambled this session.</p>
+    <div id="pin-auth-container" style="flex:1; display:flex; flex-direction:column; min-height:0;">
+      <div class="pin-display" id="dots-auth-container">
+        <div class="pin-dot" id="auth-dot-1"></div>
+        <div class="pin-dot" id="auth-dot-2"></div>
+        <div class="pin-dot" id="auth-dot-3"></div>
+        <div class="pin-dot" id="auth-dot-4"></div>
+      </div>
+      <div class="pin-status" id="auth-pin-status">👁️ Look at a number and blink to select</div>
+      <div class="keypad-container">
+        <div class="gaze-hint">👁️ Gaze at key → highlight · 😉 Blink → confirm</div>
+        <div class="keypad-full" id="auth-keypad"></div>
+      </div>
+    </div>
   </section>
 
   <!-- SCREEN: DECISION -->
   <section class="screen" id="screen-decision">
-    <div class="card">
+    <div class="card" style="background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px; flex:1; display:flex; flex-direction:column; justify-content:center;">
       <div class="decision-icon" id="decision-icon">✅</div>
       <div class="decision-title" id="decision-title">Access Granted</div>
       <div class="decision-sub" id="decision-sub">All three checks passed</div>
@@ -394,7 +521,7 @@
         <div class="scorebar-label"><span>Liveness — Temporal</span><span id="score-temporal-val">—</span></div>
         <div class="scorebar-track"><div class="scorebar-fill" id="score-temporal-bar" style="background:var(--spectral-yellow); width:0%;"></div></div>
       </div>
-      <div class="scorebar" style="margin-top:14px; padding-top:14px; border-top:1px solid var(--line);">
+      <div class="scorebar" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line);">
         <div class="scorebar-label"><span style="color:var(--text)">Combined Liveness (0.40/0.35/0.25)</span><span id="score-combined-val">—</span></div>
         <div class="scorebar-track"><div class="scorebar-fill" id="score-combined-bar" style="background:var(--aura); width:0%;"></div></div>
       </div>
@@ -403,8 +530,8 @@
         <div class="scorebar-track"><div class="scorebar-fill" id="score-pin-bar" style="background:var(--pass); width:0%;"></div></div>
       </div>
     </div>
-    <button class="btn-primary" onclick="resetDemo()">Run Again</button>
-    <button class="btn-ghost" onclick="goTo('intro')">Back to Start</button>
+    <button class="btn-primary" onclick="resetDemo()" style="flex-shrink:0; margin-top:8px;">Run Again</button>
+    <button class="btn-ghost" onclick="goTo('intro')" style="flex-shrink:0; margin-top:6px;">Back to Start</button>
   </section>
 </div>
 
@@ -412,7 +539,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script>
 /* ============================================================
-   KYC AURA — DEMO STATE (v0.5)
+   KYC AURA — DEMO STATE (v0.6)
    ============================================================ */
 const STATE = {
   enrolledVector: null,
@@ -433,6 +560,8 @@ const MOUTH_LEFT = 61;
 const MOUTH_RIGHT = 291;
 const FOREHEAD = 10;
 const CHIN = 152;
+const LEFT_EYE_CORNER = 133;
+const RIGHT_EYE_CORNER = 362;
 
 const FEATURE_PAIRS = [
   [LEFT_EYE, RIGHT_EYE],
@@ -465,7 +594,8 @@ function cosineSim(a,b){
    ============================================================ */
 function goTo(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
+  const el = document.getElementById('screen-'+id);
+  if(el) el.classList.add('active');
   if(id==='enroll-face') initEnrollCamera();
   if(id==='set-pin') initPinSetup();
   if(id==='auth-face') initAuthCamera();
@@ -492,7 +622,7 @@ function getFaceMesh(){
 }
 
 /* ---------- ALIGNMENT TRACKING ---------- */
-function checkFaceAlignment(landmarks, gridId, statusId, dotId, textId, boundaryId){
+function checkFaceAlignment(landmarks, boundaryId, statusId, dotId, textId){
   if(!landmarks) return 0;
   
   const nose = landmarks[NOSE_TIP];
@@ -551,7 +681,7 @@ function checkFaceAlignment(landmarks, gridId, statusId, dotId, textId, boundary
     boundary.classList.add('aligned');
     dotEl.className = 'dot good';
     textEl.textContent = '✅ Face aligned';
-    statusEl.textContent = 'Face aligned';
+    if(statusEl) statusEl.textContent = 'Face aligned';
   } else if(alignScore > 0.45){
     boundary.classList.remove('aligned', 'off');
     dotEl.className = 'dot fair';
@@ -562,7 +692,7 @@ function checkFaceAlignment(landmarks, gridId, statusId, dotId, textId, boundary
     } else {
       textEl.textContent = 'Adjust position';
     }
-    statusEl.textContent = 'Adjust position';
+    if(statusEl) statusEl.textContent = 'Adjust position';
   } else {
     boundary.classList.remove('aligned');
     boundary.classList.add('off');
@@ -572,7 +702,7 @@ function checkFaceAlignment(landmarks, gridId, statusId, dotId, textId, boundary
     } else {
       textEl.textContent = '👤 Face not detected';
     }
-    statusEl.textContent = 'No face';
+    if(statusEl) statusEl.textContent = 'No face';
   }
   
   return alignScore;
@@ -603,23 +733,23 @@ function initEnrollCamera(){
       drawMeshDots(ctx, lm, canvasEl.width, canvasEl.height, '#34E7E7');
       ringEl.classList.add('tracking');
       
-      const alignScore = checkFaceAlignment(lm, 'enroll', 'status-enroll', 'align-dot-enroll', 'align-text-enroll', 'boundary-enroll');
+      const alignScore = checkFaceAlignment(lm, 'boundary-enroll', 'status-enroll', 'align-dot-enroll', 'align-text-enroll');
       
       if(alignScore > 0.75){
         if(!enrollHoldStart) enrollHoldStart = Date.now();
         const held = Date.now() - enrollHoldStart;
-        if(held > 900){ btn.disabled = false; statusEl.textContent = 'Ready to capture ✅'; }
+        if(held > 900){ btn.disabled = false; if(statusEl) statusEl.textContent = 'Ready to capture ✅'; }
       } else {
         enrollHoldStart = null;
         btn.disabled = true;
-        statusEl.textContent = 'Align your face';
+        if(statusEl) statusEl.textContent = 'Align your face';
       }
     } else {
       lastEnrollLandmarks = null;
       enrollHoldStart = null;
       ringEl.classList.remove('tracking');
       btn.disabled = true;
-      statusEl.textContent = 'No face detected';
+      if(statusEl) statusEl.textContent = 'No face detected';
       document.getElementById('boundary-enroll').className = 'boundary off';
     }
   });
@@ -631,26 +761,22 @@ function captureEnrollment(){
   if(!lastEnrollLandmarks) return;
   STATE.enrolledVector = computeFingerprint(lastEnrollLandmarks);
   document.getElementById('ring-enroll').classList.add('pass');
-  document.getElementById('status-enroll').textContent = 'Captured ✓';
+  const statusEl = document.getElementById('status-enroll');
+  if(statusEl) statusEl.textContent = 'Captured ✓';
   stopCurrentCamera();
   setTimeout(()=>goTo('set-pin'), 500);
 }
 
 /* ---------- PIN SETUP ---------- */
+let setPinGazeData = { currentPin: '', isActive: false, keyElements: [], gazeTimer: null, blinkCount: 0 };
+
 function initPinSetup(){
   STATE.enrolledPin = '';
-  renderKeypad('keypad-set', (digit)=>{
-    if(STATE.enrolledPin.length < 4){
-      STATE.enrolledPin += digit;
-      renderDots('dots-set', STATE.enrolledPin.length, 4);
-      if(STATE.enrolledPin.length===4){
-        document.getElementById('msg-set').textContent = 'PIN set ✓ Moving to authentication…';
-        setTimeout(()=>goTo('auth-face'), 700);
-      }
-    }
-  });
-  renderDots('dots-set', 0, 4);
-  document.getElementById('msg-set').textContent = '';
+  setPinGazeData.currentPin = '';
+  setPinGazeData.isActive = true;
+  updatePinDots('set', setPinGazeData.currentPin, 4);
+  document.getElementById('set-pin-status').textContent = '👁️ Look at a number and blink to select';
+  renderGazeKeypad('set-keypad', 'set');
 }
 
 /* ---------- AUTH CAMERA + LIVENESS ---------- */
@@ -685,7 +811,7 @@ function initAuthCamera(){
       drawMeshDots(ctx, lm, canvasEl.width, canvasEl.height, livenessRunning ? '#91B2C7' : '#34E7E7');
       ringEl.classList.add('tracking');
       
-      const alignScore = checkFaceAlignment(lm, 'auth', 'status-auth', 'align-dot-auth', 'align-text-auth', 'boundary-auth');
+      const alignScore = checkFaceAlignment(lm, 'boundary-auth', 'status-auth', 'align-dot-auth', 'align-text-auth');
 
       if(!livenessRunning && alignScore > 0.75){
         btn.disabled = false;
@@ -717,13 +843,15 @@ function initAuthCamera(){
             ty: STATE._currentTargetPos?.y ?? 0.5
           });
         }
-        statusEl.textContent = `🎯 Following target ${targetIndex}/${targetPath.length}`;
+        const statusEl2 = document.getElementById('status-auth');
+        if(statusEl2) statusEl2.textContent = `🎯 Following target ${targetIndex}/${targetPath.length}`;
       }
     } else {
       lastAuthLandmarks = null;
       ringEl.classList.remove('tracking');
       if(!livenessRunning) btn.disabled = true;
-      statusEl.textContent = 'No face detected';
+      const statusEl2 = document.getElementById('status-auth');
+      if(statusEl2) statusEl2.textContent = 'No face detected';
       pupilTrack.classList.add('hidden');
       pupilTrack.classList.remove('visible');
     }
@@ -841,19 +969,20 @@ function generateRandomBorderTargets(count=5){
 function startLivenessChallenge(){
   if(!lastAuthLandmarks) return;
   document.getElementById('btn-start-liveness').disabled = true;
-  document.getElementById('auth-face-instructions').textContent = '👁️ Follow the Relaxing Blue dot with your eyes as it moves around the screen.';
+  const instEl = document.getElementById('auth-face-instructions');
+  if(instEl) instEl.textContent = '👁️ Follow the Relaxing Blue dot with your eyes as it moves around the screen.';
   livenessRunning = true;
   livenessSamples = [];
   targetPath = generateRandomBorderTargets(5);
   targetIndex = 0;
   
   const counterEl = document.getElementById('target-counter');
-  counterEl.style.display = 'block';
+  if(counterEl) counterEl.style.display = 'block';
   
   startSpectralLoop();
 
   const targetEl = document.getElementById('liveness-target');
-  targetEl.classList.remove('hidden');
+  if(targetEl) targetEl.classList.remove('hidden');
   const statusEl = document.getElementById('status-auth');
 
   function showNext(){
@@ -862,11 +991,13 @@ function startLivenessChallenge(){
       return;
     }
     const p = targetPath[targetIndex];
-    targetEl.style.left = p.x + '%';
-    targetEl.style.top = p.y + '%';
+    if(targetEl){
+      targetEl.style.left = p.x + '%';
+      targetEl.style.top = p.y + '%';
+    }
     STATE._currentTargetPos = p;
-    statusEl.textContent = `🎯 Follow target ${targetIndex+1}/${targetPath.length}`;
-    counterEl.textContent = `${targetIndex+1} / ${targetPath.length}`;
+    if(statusEl) statusEl.textContent = `🎯 Follow target ${targetIndex+1}/${targetPath.length}`;
+    if(counterEl) counterEl.textContent = `${targetIndex+1} / ${targetPath.length}`;
     targetIndex++;
     targetTimer = setTimeout(showNext, 2200);
   }
@@ -878,10 +1009,17 @@ function finishLivenessChallenge(){
   livenessRunning = false;
   clearTimeout(targetTimer);
   stopSpectralLoop();
-  document.getElementById('liveness-target').classList.add('hidden');
-  document.getElementById('target-counter').style.display = 'none';
-  document.getElementById('pupil-track').classList.add('hidden');
-  document.getElementById('status-auth').textContent = 'Challenge complete';
+  const targetEl = document.getElementById('liveness-target');
+  if(targetEl) targetEl.classList.add('hidden');
+  const counterEl = document.getElementById('target-counter');
+  if(counterEl) counterEl.style.display = 'none';
+  const pupilTrack = document.getElementById('pupil-track');
+  if(pupilTrack){
+    pupilTrack.classList.add('hidden');
+    pupilTrack.classList.remove('visible');
+  }
+  const statusEl = document.getElementById('status-auth');
+  if(statusEl) statusEl.textContent = 'Challenge complete';
 
   // ---- SPATIAL SCORE ----
   let spatialScore = 0;
@@ -954,7 +1092,7 @@ function finishLivenessChallenge(){
   }
   STATE.scores.face = faceScore;
 
-  console.log('=== KYC AURA RESULTS (v0.5) ===');
+  console.log('=== KYC AURA RESULTS (v0.6) ===');
   console.log('Face Score:', STATE.scores.face);
   console.log('Spatial Score (pupil):', STATE.scores.spatial);
   console.log('Spectral Score:', STATE.scores.spectral);
@@ -967,59 +1105,377 @@ function finishLivenessChallenge(){
 }
 
 /* ---------- PIN AUTH ---------- */
+let authPinGazeData = { currentPin: '', isActive: false, keyElements: [], gazeTimer: null, blinkCount: 0 };
+
 function initPinAuth(){
   STATE.sessionPin = '';
-  renderKeypad('keypad-auth', (digit)=>{
-    if(STATE.sessionPin.length < 4){
-      STATE.sessionPin += digit;
-      renderDots('dots-auth', STATE.sessionPin.length, 4);
-      if(STATE.sessionPin.length===4){
-        const pinMatch = (STATE.sessionPin === STATE.enrolledPin);
-        STATE.scores.pinMatch = pinMatch;
-        console.log('PIN entered:', STATE.sessionPin, 'Enrolled:', STATE.enrolledPin, 'Match:', pinMatch);
-        setTimeout(()=>showDecision(), 400);
+  authPinGazeData.currentPin = '';
+  authPinGazeData.isActive = true;
+  updatePinDots('auth', authPinGazeData.currentPin, 4);
+  document.getElementById('auth-pin-status').textContent = '👁️ Look at a number and blink to select';
+  renderGazeKeypad('auth-keypad', 'auth', true);
+}
+
+/* ============================================================
+   GAZE-BASED KEYPAD SYSTEM
+   ============================================================ */
+let gazeData = {
+  activeKey: null,
+  gazeTimer: null,
+  highlightStart: null,
+  blinkDetected: false,
+  eyeOpen: true,
+  lastEyeState: true,
+  consecutiveFrames: 0,
+  blinkThreshold: 80, // frames of eye closure
+  keyFrames: {}
+};
+
+// Blink detection using eye landmarks
+function detectBlink(landmarks){
+  if(!landmarks) return false;
+  
+  const lEyeInner = landmarks[133];
+  const lEyeOuter = landmarks[33];
+  const rEyeInner = landmarks[362];
+  const rEyeOuter = landmarks[263];
+  
+  if(!lEyeInner || !lEyeOuter || !rEyeInner || !rEyeOuter) return false;
+  
+  const lDist = dist3(lEyeInner, lEyeOuter);
+  const rDist = dist3(rEyeInner, rEyeOuter);
+  const avgDist = (lDist + rDist) / 2;
+  
+  // Threshold for eye openness - compare to average eye size
+  const eyeOpen = avgDist > 0.02;
+  
+  // Detect blink: eye was open, now closed, then open again
+  if(eyeOpen && gazeData.blinkDetected){
+    // Blink complete
+    gazeData.blinkDetected = false;
+    return true;
+  }
+  
+  if(!eyeOpen && !gazeData.blinkDetected){
+    // Eye closed - start blink detection
+    gazeData.blinkDetected = true;
+  }
+  
+  return false;
+}
+
+// Keypad layout based on your image
+const KEYPAD_LAYOUT = [
+  { number: '1', letters: 'ABC' },
+  { number: '2', letters: 'DEF' },
+  { number: '3', letters: 'GHI' },
+  { number: '4', letters: 'JKL' },
+  { number: '5', letters: 'MNO' },
+  { number: '6', letters: 'PQRS' },
+  { number: '7', letters: 'TUV' },
+  { number: '8', letters: 'WXYZ' },
+  { number: '9', letters: '☎' },
+  { number: '⌫', letters: 'Delete', isAction: true },
+  { number: '0', letters: ' ' },
+  { number: '✕', letters: 'Clear', isAction: true }
+];
+
+function renderGazeKeypad(containerId, mode, shuffled=false){
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  
+  container.innerHTML = '';
+  let layout = [...KEYPAD_LAYOUT];
+  
+  // Shuffle only the number keys for auth mode
+  if(shuffled){
+    const numberKeys = layout.filter(k => !k.isAction && k.number !== '0');
+    const actionKeys = layout.filter(k => k.isAction || k.number === '0');
+    for(let i=numberKeys.length-1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [numberKeys[i], numberKeys[j]] = [numberKeys[j], numberKeys[i]];
+    }
+    // Reconstruct layout: 3 rows of numbers + 1 row of actions
+    const row1 = numberKeys.slice(0, 3);
+    const row2 = numberKeys.slice(3, 6);
+    const row3 = numberKeys.slice(6, 9);
+    const row4 = actionKeys;
+    layout = [...row1, ...row2, ...row3, ...row4];
+  }
+  
+  // Create rows
+  for(let row=0; row<4; row++){
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'keypad-row';
+    rowDiv.dataset.row = row;
+    
+    for(let col=0; col<3; col++){
+      const idx = row * 3 + col;
+      if(idx >= layout.length) break;
+      const key = layout[idx];
+      const keyDiv = document.createElement('div');
+      keyDiv.className = 'key';
+      if(key.isAction) keyDiv.classList.add('action');
+      keyDiv.dataset.key = key.number;
+      keyDiv.dataset.mode = mode;
+      keyDiv.dataset.row = row;
+      keyDiv.dataset.col = col;
+      
+      const numSpan = document.createElement('span');
+      numSpan.className = 'number';
+      numSpan.textContent = key.number;
+      keyDiv.appendChild(numSpan);
+      
+      if(key.letters && key.letters !== ' '){
+        const letSpan = document.createElement('span');
+        letSpan.className = 'letters';
+        letSpan.textContent = key.letters;
+        keyDiv.appendChild(letSpan);
+      }
+      
+      // Store reference for gaze tracking
+      keyDiv.dataset.x = 0; // Will be calculated later
+      keyDiv.dataset.y = 0;
+      keyDiv.dataset.width = 0;
+      keyDiv.dataset.height = 0;
+      
+      rowDiv.appendChild(keyDiv);
+    }
+    container.appendChild(rowDiv);
+  }
+  
+  // Store key references for gaze tracking
+  if(mode === 'set'){
+    setPinGazeData.keyElements = container.querySelectorAll('.key');
+  } else {
+    authPinGazeData.keyElements = container.querySelectorAll('.key');
+  }
+  
+  // Calculate key positions after render
+  requestAnimationFrame(() => {
+    updateKeyPositions(mode);
+  });
+}
+
+function updateKeyPositions(mode){
+  const container = document.getElementById(mode === 'set' ? 'set-keypad' : 'auth-keypad');
+  if(!container) return;
+  const keys = container.querySelectorAll('.key');
+  const rect = container.getBoundingClientRect();
+  
+  keys.forEach(key => {
+    const keyRect = key.getBoundingClientRect();
+    key.dataset.x = (keyRect.left + keyRect.width/2 - rect.left) / rect.width;
+    key.dataset.y = (keyRect.top + keyRect.height/2 - rect.top) / rect.height;
+    key.dataset.width = keyRect.width / rect.width;
+    key.dataset.height = keyRect.height / rect.height;
+  });
+}
+
+function getKeyAtGaze(pupilX, pupilY, mode){
+  // pupilX, pupilY are normalized 0-1
+  const container = document.getElementById(mode === 'set' ? 'set-keypad' : 'auth-keypad');
+  if(!container) return null;
+  
+  const keys = container.querySelectorAll('.key');
+  let closestKey = null;
+  let closestDist = Infinity;
+  
+  keys.forEach(key => {
+    const kx = parseFloat(key.dataset.x);
+    const ky = parseFloat(key.dataset.y);
+    const kw = parseFloat(key.dataset.width) || 0.3;
+    const kh = parseFloat(key.dataset.height) || 0.2;
+    
+    // Check if gaze is within key bounds with some margin
+    const margin = 0.1;
+    const inX = pupilX >= (kx - kw/2 - margin) && pupilX <= (kx + kw/2 + margin);
+    const inY = pupilY >= (ky - kh/2 - margin) && pupilY <= (ky + kh/2 + margin);
+    
+    if(inX && inY){
+      const dist = Math.sqrt((pupilX - kx)**2 + (pupilY - ky)**2);
+      if(dist < closestDist){
+        closestDist = dist;
+        closestKey = key;
       }
     }
-  }, true);
-  renderDots('dots-auth', 0, 4);
+  });
+  
+  return closestKey;
+}
+
+// Gaze-based keypad interaction loop
+let gazeLoopActive = false;
+let lastPupilPos = { x: 0.5, y: 0.5 };
+let highlightTimeout = null;
+
+function startGazeLoop(mode){
+  if(gazeLoopActive) return;
+  gazeLoopActive = true;
+  
+  const statusId = mode === 'set' ? 'set-pin-status' : 'auth-pin-status';
+  const statusEl = document.getElementById(statusId);
+  
+  function loop(){
+    if(!gazeLoopActive) return;
+    
+    if(lastAuthLandmarks){
+      const lEye = lastAuthLandmarks[LEFT_EYE];
+      const rEye = lastAuthLandmarks[RIGHT_EYE];
+      
+      if(lEye && rEye){
+        const pupilX = (lEye.x + rEye.x) / 2;
+        const pupilY = (lEye.y + rEye.y) / 2;
+        lastPupilPos = { x: pupilX, y: pupilY };
+        
+        // Check for blink
+        const blink = detectBlink(lastAuthLandmarks);
+        if(blink){
+          // Blink detected — confirm the currently highlighted key
+          confirmKeySelection(mode);
+        }
+        
+        // Find key at gaze position
+        const key = getKeyAtGaze(pupilX, pupilY, mode);
+        highlightKey(key, mode);
+      }
+    }
+    
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+function highlightKey(key, mode){
+  const container = document.getElementById(mode === 'set' ? 'set-keypad' : 'auth-keypad');
+  if(!container) return;
+  
+  // Remove all highlights
+  container.querySelectorAll('.key').forEach(k => {
+    k.classList.remove('highlight');
+  });
+  
+  if(key){
+    key.classList.add('highlight');
+    // Update status
+    const statusId = mode === 'set' ? 'set-pin-status' : 'auth-pin-status';
+    const statusEl = document.getElementById(statusId);
+    if(statusEl){
+      const keyNum = key.dataset.key;
+      if(keyNum === '⌫'){
+        statusEl.innerHTML = '👁️ Looking at <span class="highlight-text">Delete</span> — blink to remove last digit';
+      } else if(keyNum === '✕'){
+        statusEl.innerHTML = '👁️ Looking at <span class="highlight-text">Clear</span> — blink to clear all digits';
+      } else {
+        statusEl.innerHTML = `👁️ Looking at <span class="highlight-text">${keyNum}</span> — blink to confirm`;
+      }
+    }
+  } else {
+    const statusId = mode === 'set' ? 'set-pin-status' : 'auth-pin-status';
+    const statusEl = document.getElementById(statusId);
+    if(statusEl){
+      statusEl.textContent = '👁️ Look at a number and blink to select';
+    }
+  }
+}
+
+function confirmKeySelection(mode){
+  const container = document.getElementById(mode === 'set' ? 'set-keypad' : 'auth-keypad');
+  if(!container) return;
+  
+  const highlighted = container.querySelector('.key.highlight');
+  if(!highlighted) return;
+  
+  const keyNum = highlighted.dataset.key;
+  const currentPin = mode === 'set' ? setPinGazeData.currentPin : authPinGazeData.currentPin;
+  const maxDigits = 4;
+  
+  if(keyNum === '⌫'){
+    // Delete: remove last digit
+    const newPin = currentPin.slice(0, -1);
+    if(mode === 'set'){
+      setPinGazeData.currentPin = newPin;
+      STATE.enrolledPin = newPin;
+      updatePinDots('set', newPin, maxDigits);
+      document.getElementById('set-pin-status').textContent = '🗑️ Deleted — look at next number';
+    } else {
+      authPinGazeData.currentPin = newPin;
+      STATE.sessionPin = newPin;
+      updatePinDots('auth', newPin, maxDigits);
+      document.getElementById('auth-pin-status').textContent = '🗑️ Deleted — look at next number';
+    }
+    return;
+  }
+  
+  if(keyNum === '✕'){
+    // Clear: remove all digits
+    if(mode === 'set'){
+      setPinGazeData.currentPin = '';
+      STATE.enrolledPin = '';
+      updatePinDots('set', '', maxDigits);
+      document.getElementById('set-pin-status').textContent = '✕ Cleared — look at numbers to set PIN';
+    } else {
+      authPinGazeData.currentPin = '';
+      STATE.sessionPin = '';
+      updatePinDots('auth', '', maxDigits);
+      document.getElementById('auth-pin-status').textContent = '✕ Cleared — look at numbers to enter PIN';
+    }
+    return;
+  }
+  
+  // Number key
+  if(currentPin.length < maxDigits){
+    const newPin = currentPin + keyNum;
+    if(mode === 'set'){
+      setPinGazeData.currentPin = newPin;
+      STATE.enrolledPin = newPin;
+      updatePinDots('set', newPin, maxDigits);
+      if(newPin.length === maxDigits){
+        document.getElementById('set-pin-status').textContent = '✅ PIN set! Moving to authentication...';
+        gazeLoopActive = false;
+        setTimeout(()=>goTo('auth-face'), 800);
+      } else {
+        document.getElementById('set-pin-status').textContent = `✅ ${keyNum} entered — ${4 - newPin.length} more digits`;
+      }
+    } else {
+      authPinGazeData.currentPin = newPin;
+      STATE.sessionPin = newPin;
+      updatePinDots('auth', newPin, maxDigits);
+      if(newPin.length === maxDigits){
+        const pinMatch = (STATE.sessionPin === STATE.enrolledPin);
+        STATE.scores.pinMatch = pinMatch;
+        document.getElementById('auth-pin-status').textContent = pinMatch ? '✅ PIN matched! Verifying...' : '❌ PIN does not match';
+        gazeLoopActive = false;
+        setTimeout(()=>showDecision(), 800);
+      } else {
+        document.getElementById('auth-pin-status').textContent = `✅ ${keyNum} entered — ${4 - newPin.length} more digits`;
+      }
+    }
+  } else {
+    const statusId = mode === 'set' ? 'set-pin-status' : 'auth-pin-status';
+    const statusEl = document.getElementById(statusId);
+    if(statusEl) statusEl.textContent = '⚠️ Already 4 digits — use Delete or Clear';
+  }
+}
+
+function updatePinDots(mode, pin, total){
+  for(let i=1; i<=total; i++){
+    const dot = document.getElementById(`${mode}-dot-${i}`);
+    if(dot){
+      dot.className = 'pin-dot';
+      if(i <= pin.length){
+        dot.classList.add('filled');
+      }
+      if(i === pin.length + 1 && pin.length < total){
+        dot.classList.add('active');
+      }
+    }
+  }
 }
 
 /* ============================================================
    UI HELPERS
    ============================================================ */
-function renderDots(containerId, filled, total){
-  const c = document.getElementById(containerId);
-  c.innerHTML = '';
-  for(let i=0;i<total;i++){
-    const d = document.createElement('div');
-    d.className = 'pin-dot' + (i < filled ? ' filled' : '');
-    c.appendChild(d);
-  }
-}
-
-function renderKeypad(containerId, onPress, shuffle=false){
-  const c = document.getElementById(containerId);
-  c.innerHTML = '';
-  let digits = ['0','1','2','3','4','5','6','7','8','9'];
-  if(shuffle){
-    for(let i=digits.length-1;i>0;i--){
-      const j = Math.floor(Math.random()*(i+1));
-      [digits[i],digits[j]] = [digits[j],digits[i]];
-    }
-  }
-  digits.forEach(d=>{
-    const el = document.createElement('div');
-    el.className = 'key';
-    el.textContent = d;
-    el.onclick = ()=>{
-      el.classList.add('hit');
-      setTimeout(()=>el.classList.remove('hit'), 150);
-      onPress(d);
-    };
-    c.appendChild(el);
-  });
-}
-
 function drawMeshDots(ctx, landmarks, w, h, color){
   ctx.fillStyle = color;
   for(let i=0;i<landmarks.length;i+=3){
@@ -1093,6 +1549,55 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   });
 }
+
+/* ============================================================
+   START GAZE LOOP WHEN PIN SCREENS ARE ACTIVE
+   ============================================================ */
+// Override goTo to start gaze loops
+const originalGoTo = goTo;
+goTo = function(id){
+  // Stop existing gaze loops
+  gazeLoopActive = false;
+  if(gazeData.gazeTimer){
+    clearTimeout(gazeData.gazeTimer);
+    gazeData.gazeTimer = null;
+  }
+  
+  originalGoTo(id);
+  
+  if(id === 'set-pin'){
+    // Start gaze loop after a short delay to ensure rendering
+    setTimeout(() => {
+      updateKeyPositions('set');
+      startGazeLoop('set');
+    }, 300);
+  }
+  if(id === 'auth-pin'){
+    setTimeout(() => {
+      updateKeyPositions('auth');
+      startGazeLoop('auth');
+    }, 300);
+  }
+};
+
+// Also override initPinSetup and initPinAuth to set up the gaze loop
+const originalInitPinSetup = initPinSetup;
+initPinSetup = function(){
+  originalInitPinSetup();
+  setTimeout(() => {
+    updateKeyPositions('set');
+    startGazeLoop('set');
+  }, 300);
+};
+
+const originalInitPinAuth = initPinAuth;
+initPinAuth = function(){
+  originalInitPinAuth();
+  setTimeout(() => {
+    updateKeyPositions('auth');
+    startGazeLoop('auth');
+  }, 300);
+};
 </script>
 </body>
 </html>
