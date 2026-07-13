@@ -76,6 +76,7 @@
   }
   .ring.tracking{ border-color:var(--aura); box-shadow: inset 0 0 40px rgba(52,231,231,0.25), 0 0 24px rgba(52,231,231,0.35);}
   .ring.pass{ border-color:var(--pass); box-shadow: inset 0 0 40px rgba(60,230,139,0.3), 0 0 24px rgba(60,230,139,0.4);}
+  
   .status-chip{
     position:absolute; top:12px; left:12px; padding:6px 12px; border-radius:20px;
     background:rgba(10,14,26,0.75); backdrop-filter:blur(6px);
@@ -85,6 +86,27 @@
   .dot-pulse{ width:6px; height:6px; border-radius:50%; background:var(--aura); animation:pulse 1.2s infinite;}
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
+  /* HEAD SILHOUETTE GUIDE */
+  .silhouette{
+    position:absolute; inset:0; border-radius:20px; pointer-events:none;
+    display:flex; align-items:center; justify-content:center; z-index:5;
+  }
+  .silhouette svg{
+    width:45%; height:45%; opacity:0.25;
+    transition: opacity 0.5s ease;
+  }
+  .silhouette.aligned svg{ opacity:0.5; }
+  .silhouette svg .outline{ stroke:#34E7E7; stroke-width:2; fill:none; }
+  .silhouette svg .eyes{ fill:#34E7E7; opacity:0.4; }
+  .silhouette .status-text{
+    position:absolute; bottom:15%; left:50%; transform:translateX(-50%);
+    font-size:12px; color:var(--text-dim); background:rgba(0,0,0,0.6); padding:4px 14px; border-radius:12px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .silhouette.aligned .status-text{ color:var(--pass); }
+  .silhouette:not(.aligned) .status-text{ color:var(--fail); }
+
+  /* TARGET DOT */
   .target{
     position:absolute; width:32px; height:32px; border-radius:50%;
     background:var(--spectral-magenta); 
@@ -103,6 +125,16 @@
     0%,100%{ transform:scale(1); opacity:0.5; }
     50%{ transform:scale(1.5); opacity:0; }
   }
+
+  /* PUPIL TRACKING INDICATOR */
+  .pupil-track{
+    position:absolute; width:8px; height:8px; border-radius:50%;
+    background:#FFD84D; box-shadow:0 0 12px #FFD84D;
+    transform:translate(-50%,-50%); z-index:6;
+    pointer-events:none; transition: all 0.05s ease;
+  }
+  .pupil-track.visible{ display:block; }
+  .pupil-track.hidden{ display:none; }
 
   #spectral-flash{
     position:fixed; inset:0; z-index:-1; background:transparent;
@@ -141,6 +173,13 @@
 
   footer.note{ font-size:11px; color:var(--text-dim); text-align:center; margin-top:auto; padding-top:24px; line-height:1.5;}
   .hidden{ display:none !important; }
+
+  #target-counter{
+    position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,0.7); color:#fff; padding:4px 12px; border-radius:12px;
+    font-size:12px; font-family:'JetBrains Mono',monospace;
+    display:none; border:1px solid var(--line);
+  }
 </style>
 </head>
 <body>
@@ -150,7 +189,7 @@
     <div class="aura-mark"></div>
     <div>
       <h1>KYC Aura</h1>
-      <p>Multimodal Auth Demo · v0.1</p>
+      <p>Multimodal Auth Demo · v0.2</p>
     </div>
   </header>
 
@@ -164,19 +203,31 @@
     </div>
     <div class="card">
       <div class="eyebrow">What this proves</div>
-      <p class="sub" style="margin-bottom:0">✓ Live face tracking with 468-point mesh<br>✓ Motion-based liveness challenge (defeats static photos)<br>✓ Session-scrambled PIN keypad (defeats shoulder-surfing)</p>
+      <p class="sub" style="margin-bottom:0">✓ Live face tracking with 468-point mesh<br>✓ Real pupil tracking (not head proxy)<br>✓ Motion-based liveness challenge<br>✓ Session-scrambled PIN keypad</p>
     </div>
-    <footer class="note">Simplified research prototype — not production-grade biometric matching. See notes at the end.</footer>
+    <footer class="note">Research prototype — not production-grade biometric matching.</footer>
   </section>
 
   <!-- SCREEN: ENROLL FACE -->
   <section class="screen" id="screen-enroll-face">
     <div class="eyebrow">Step 1 of 4</div>
     <h2>Enroll Your Face</h2>
-    <p class="sub">Center your face in frame. Hold still for 3 seconds once the ring turns green.</p>
+    <p class="sub">Center your face in the silhouette guide. Hold still for 3 seconds once the ring turns green.</p>
     <div class="video-wrap">
       <video id="video-enroll" autoplay playsinline muted></video>
       <canvas class="overlay" id="canvas-enroll"></canvas>
+      <div id="silhouette-enroll" class="silhouette">
+        <svg viewBox="0 0 100 100">
+          <circle class="outline" cx="50" cy="48" r="32"/>
+          <ellipse class="outline" cx="50" cy="48" rx="28" ry="34"/>
+          <circle class="outline" cx="40" cy="42" r="5"/>
+          <circle class="outline" cx="60" cy="42" r="5"/>
+          <ellipse class="outline" cx="50" cy="52" rx="12" ry="6"/>
+          <circle class="eyes" cx="40" cy="42" r="4"/>
+          <circle class="eyes" cx="60" cy="42" r="4"/>
+        </svg>
+        <div class="status-text">👤 Center your face</div>
+      </div>
       <div class="ring" id="ring-enroll"></div>
       <div class="status-chip"><span class="dot-pulse"></span><span id="status-enroll">Starting camera…</span></div>
     </div>
@@ -197,16 +248,29 @@
   <section class="screen" id="screen-auth-face">
     <div class="eyebrow">Step 3 of 4 · Authenticate</div>
     <h2>Face + Liveness Check</h2>
-    <p class="sub" id="auth-face-instructions">Center your face. Then follow the magenta dot with your head as it moves to the edges of the frame.</p>
+    <p class="sub" id="auth-face-instructions">Center your face. Then follow the magenta dot with your eyes as it moves around the frame.</p>
     <div class="video-wrap">
       <video id="video-auth" autoplay playsinline muted></video>
       <canvas class="overlay" id="canvas-auth"></canvas>
+      <div id="silhouette-auth" class="silhouette">
+        <svg viewBox="0 0 100 100">
+          <circle class="outline" cx="50" cy="48" r="32"/>
+          <ellipse class="outline" cx="50" cy="48" rx="28" ry="34"/>
+          <circle class="outline" cx="40" cy="42" r="5"/>
+          <circle class="outline" cx="60" cy="42" r="5"/>
+          <ellipse class="outline" cx="50" cy="52" rx="12" ry="6"/>
+          <circle class="eyes" cx="40" cy="42" r="4"/>
+          <circle class="eyes" cx="60" cy="42" r="4"/>
+        </svg>
+        <div class="status-text">👤 Center your face</div>
+      </div>
       <div class="ring" id="ring-auth"></div>
       <div class="target hidden" id="liveness-target">
         <div class="pulse-ring"></div>
       </div>
+      <div class="pupil-track hidden" id="pupil-track"></div>
       <div class="status-chip"><span class="dot-pulse"></span><span id="status-auth">Starting camera…</span></div>
-      <div id="target-counter" style="position:absolute; bottom:12px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:#fff; padding:4px 12px; border-radius:12px; font-size:12px; font-family:'JetBrains Mono',monospace; display:none; border:1px solid var(--line);">0 / 6</div>
+      <div id="target-counter">0 / 5</div>
     </div>
     <button class="btn-primary" id="btn-start-liveness" disabled onclick="startLivenessChallenge()">Begin Liveness Challenge</button>
   </section>
@@ -232,7 +296,7 @@
         <div class="scorebar-track"><div class="scorebar-fill" id="score-face-bar" style="background:var(--aura); width:0%;"></div></div>
       </div>
       <div class="scorebar">
-        <div class="scorebar-label"><span>Liveness — Spatial</span><span id="score-spatial-val">—</span></div>
+        <div class="scorebar-label"><span>Liveness — Spatial (Pupil)</span><span id="score-spatial-val">—</span></div>
         <div class="scorebar-track"><div class="scorebar-fill" id="score-spatial-bar" style="background:var(--spectral-magenta); width:0%;"></div></div>
       </div>
       <div class="scorebar">
@@ -261,50 +325,41 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script>
 /* ============================================================
-   KYC AURA — DEMO STATE
+   KYC AURA — DEMO STATE (v0.2 with real pupil tracking)
    ============================================================ */
 const STATE = {
-  enrolledVector: null,   // normalized landmark-distance fingerprint
+  enrolledVector: null,
   enrolledPin: '',
   sessionPin: '',
   scores: { face:0, spatial:0, spectral:0, temporal:0, combinedLiveness:0, pinMatch:false }
 };
 
-// Key landmark indices we use for a lightweight "fingerprint"
-const FEATURE_PAIRS = [
-  [33,263],   // outer eye to outer eye
-  [1,152],    // nose tip to chin
-  [61,291],   // mouth corner to mouth corner
-  [70,300],   // brow to brow
-  [1,33],     // nose to left eye
-  [1,263],    // nose to right eye
-  [10,152],   // forehead to chin
-  [234,454],  // left cheek to right cheek (jaw width)
-];
+// Landmark indices
 const NOSE_TIP = 1;
 const LEFT_IRIS = 473;
 const RIGHT_IRIS = 468;
+const LEFT_EYE = 33;
+const RIGHT_EYE = 263;
+const JAW_LEFT = 234;
+const JAW_RIGHT = 454;
 
-// Patent's spectral palette — matches Figure 3
-const SPECTRAL_COLORS = [
-  { name:'red',     rgb:[255,0,0],     css:'rgb(255,0,0)' },
-  { name:'green',   rgb:[0,255,0],     css:'rgb(0,255,0)' },
-  { name:'blue',    rgb:[0,0,255],     css:'rgb(0,0,255)' },
-  { name:'yellow',  rgb:[255,255,0],   css:'rgb(255,255,0)' },
-  { name:'cyan',    rgb:[0,255,255],   css:'rgb(0,255,255)' },
-  { name:'magenta', rgb:[255,0,255],   css:'rgb(255,0,255)' },
-  { name:'white',   rgb:[255,255,255], css:'rgb(255,255,255)' }
+const FEATURE_PAIRS = [
+  [LEFT_EYE, RIGHT_EYE],
+  [NOSE_TIP, 152],
+  [61,291],
+  [70,300],
+  [NOSE_TIP, LEFT_EYE],
+  [NOSE_TIP, RIGHT_EYE],
+  [10,152],
+  [JAW_LEFT, JAW_RIGHT]
 ];
-
-let sampleCanvas = null;
-let currentAuthVideoEl = null;
 
 function dist3(a,b){
   return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2 + (a.z-b.z)**2);
 }
 
 function computeFingerprint(landmarks){
-  const ref = dist3(landmarks[234], landmarks[454]) || 1;
+  const ref = dist3(landmarks[JAW_LEFT], landmarks[JAW_RIGHT]) || 1;
   return FEATURE_PAIRS.map(([a,b]) => dist3(landmarks[a], landmarks[b]) / ref);
 }
 
@@ -335,7 +390,7 @@ function resetDemo(){
 }
 
 /* ============================================================
-   FACE MESH SETUP (shared engine, two cameras)
+   FACE MESH SETUP
    ============================================================ */
 let faceMesh;
 function getFaceMesh(){
@@ -348,6 +403,7 @@ function getFaceMesh(){
 /* ---------- ENROLL CAMERA ---------- */
 let enrollHoldStart = null;
 let lastEnrollLandmarks = null;
+let lastEnrollFaceDetected = false;
 
 function initEnrollCamera(){
   const videoEl = document.getElementById('video-enroll');
@@ -356,17 +412,23 @@ function initEnrollCamera(){
   const statusEl = document.getElementById('status-enroll');
   const ringEl = document.getElementById('ring-enroll');
   const btn = document.getElementById('btn-enroll-capture');
+  const silEl = document.getElementById('silhouette-enroll');
 
   const fm = getFaceMesh();
   fm.onResults((results)=>{
     canvasEl.width = videoEl.videoWidth; canvasEl.height = videoEl.videoHeight;
     ctx.clearRect(0,0,canvasEl.width,canvasEl.height);
 
-    if(results.multiFaceLandmarks && results.multiFaceLandmarks.length){
+    const hasFace = results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0;
+    lastEnrollFaceDetected = hasFace;
+
+    if(hasFace){
       const lm = results.multiFaceLandmarks[0];
       lastEnrollLandmarks = lm;
       drawMeshDots(ctx, lm, canvasEl.width, canvasEl.height, '#34E7E7');
       ringEl.classList.add('tracking');
+      silEl.classList.add('aligned');
+      silEl.querySelector('.status-text').textContent = '✅ Face aligned';
       statusEl.textContent = 'Face detected — hold still…';
       if(!enrollHoldStart) enrollHoldStart = Date.now();
       const held = Date.now() - enrollHoldStart;
@@ -375,6 +437,8 @@ function initEnrollCamera(){
       lastEnrollLandmarks = null;
       enrollHoldStart = null;
       ringEl.classList.remove('tracking');
+      silEl.classList.remove('aligned');
+      silEl.querySelector('.status-text').textContent = '👤 Center your face';
       btn.disabled = true;
       statusEl.textContent = 'No face detected — center yourself';
     }
@@ -412,11 +476,11 @@ function initPinSetup(){
 /* ---------- AUTH CAMERA + LIVENESS ---------- */
 let lastAuthLandmarks = null;
 let livenessRunning = false;
-let livenessSamples = []; // {t, targetX, targetY, noseX, noseY}
+let livenessSamples = [];
 let targetPath = [];
 let targetIndex = 0;
 let targetTimer = null;
-let spatialMovementData = [];
+let currentAuthVideoEl = null;
 
 function initAuthCamera(){
   const videoEl = document.getElementById('video-auth');
@@ -426,46 +490,88 @@ function initAuthCamera(){
   const statusEl = document.getElementById('status-auth');
   const ringEl = document.getElementById('ring-auth');
   const btn = document.getElementById('btn-start-liveness');
+  const silEl = document.getElementById('silhouette-auth');
+  const pupilTrack = document.getElementById('pupil-track');
 
   const fm = getFaceMesh();
   fm.onResults((results)=>{
     canvasEl.width = videoEl.videoWidth; canvasEl.height = videoEl.videoHeight;
     ctx.clearRect(0,0,canvasEl.width,canvasEl.height);
 
-    if(results.multiFaceLandmarks && results.multiFaceLandmarks.length){
+    const hasFace = results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0;
+
+    if(hasFace){
       const lm = results.multiFaceLandmarks[0];
       lastAuthLandmarks = lm;
       drawMeshDots(ctx, lm, canvasEl.width, canvasEl.height, livenessRunning ? '#E14DFF' : '#34E7E7');
       ringEl.classList.add('tracking');
-      if(!livenessRunning){
+      silEl.classList.add('aligned');
+      silEl.querySelector('.status-text').textContent = '✅ Face aligned';
+
+      // Track pupil position for visual feedback
+      if(livenessRunning){
+        // Get average of left and right iris position
+        const lIris = lm[LEFT_IRIS];
+        const rIris = lm[RIGHT_IRIS];
+        if(lIris && rIris){
+          const avgX = (lIris.x + rIris.x) / 2;
+          const avgY = (lIris.y + rIris.y) / 2;
+          pupilTrack.style.left = (avgX * 100) + '%';
+          pupilTrack.style.top = (avgY * 100) + '%';
+          pupilTrack.classList.remove('hidden');
+          pupilTrack.classList.add('visible');
+        }
+        // Track pupil movement samples
+        const nose = lm[NOSE_TIP];
+        const lEye = lm[LEFT_EYE];
+        const rEye = lm[RIGHT_EYE];
+        if(lEye && rEye){
+          const pupilX = (lEye.x + rEye.x) / 2;
+          const pupilY = (lEye.y + rEye.y) / 2;
+          livenessSamples.push({ 
+            t: Date.now(),
+            px: pupilX,
+            py: pupilY,
+            tx: STATE._currentTargetPos?.x ?? 0.5,
+            ty: STATE._currentTargetPos?.y ?? 0.5
+          });
+        }
+        statusEl.textContent = `🎯 Following target ${targetIndex}/${targetPath.length}`;
+      } else {
         statusEl.textContent = 'Face detected';
         btn.disabled = false;
-      }
-      if(livenessRunning){
-        const nose = lm[NOSE_TIP];
-        livenessSamples.push({ 
-          t:Date.now(), 
-          nx: nose.x, 
-          ny: nose.y,
-          tx: STATE._currentTargetPos?.x ?? 0.5,
-          ty: STATE._currentTargetPos?.y ?? 0.5
-        });
       }
     } else {
       lastAuthLandmarks = null;
       ringEl.classList.remove('tracking');
+      silEl.classList.remove('aligned');
+      silEl.querySelector('.status-text').textContent = '👤 Center your face';
       if(!livenessRunning) btn.disabled = true;
       statusEl.textContent = 'No face detected';
+      pupilTrack.classList.add('hidden');
+      pupilTrack.classList.remove('visible');
     }
   });
 
   startCameraFeed(videoEl, fm);
 }
 
-/* ---------- SPECTRAL VECTOR (independent color-flash loop) ---------- */
+/* ---------- SPECTRAL VECTOR ---------- */
 let spectralSamples = [];
 let spectralTimer = null;
 let lastSpectralColor = null;
+
+const SPECTRAL_COLORS = [
+  { name:'red',     rgb:[255,0,0],     css:'rgb(255,0,0)' },
+  { name:'green',   rgb:[0,255,0],     css:'rgb(0,255,0)' },
+  { name:'blue',    rgb:[0,0,255],     css:'rgb(0,0,255)' },
+  { name:'yellow',  rgb:[255,255,0],   css:'rgb(255,255,0)' },
+  { name:'cyan',    rgb:[0,255,255],   css:'rgb(0,255,255)' },
+  { name:'magenta', rgb:[255,0,255],   css:'rgb(255,0,255)' },
+  { name:'white',   rgb:[255,255,255], css:'rgb(255,255,255)' }
+];
+
+let sampleCanvas = null;
 
 function pickNextColor(){
   let next;
@@ -514,8 +620,8 @@ function sampleIrisColor(){
     const lm = lastAuthLandmarks[idx];
     if(!lm) return;
     const px = Math.round(lm.x*w), py = Math.round(lm.y*h);
-    const x0 = Math.max(0, px-3), y0 = Math.max(0, py-3);
-    const patch = sctx.getImageData(x0, y0, 6, 6).data;
+    const x0 = Math.max(0, px-4), y0 = Math.max(0, py-4);
+    const patch = sctx.getImageData(x0, y0, 8, 8).data;
     for(let i=0;i<patch.length;i+=4){ rs+=patch[i]; gs+=patch[i+1]; bs+=patch[i+2]; n++; }
   });
   if(n===0) return null;
@@ -541,22 +647,18 @@ function computeSpectralScore(samples){
   return Math.max(0, Math.min(1, (avgSim+1)/2));
 }
 
-function generateBorderTargets(count=8){
-  // Generate targets at the corners and edges of the frame (far apart)
+/* ---------- SPATIAL TARGET GENERATION ---------- */
+function generateRandomBorderTargets(count=5){
   const positions = [
-    // Corners (extreme positions)
-    { x: 8, y: 8 },      // Top-left
-    { x: 92, y: 8 },     // Top-right
-    { x: 92, y: 92 },    // Bottom-right
-    { x: 8, y: 92 },     // Bottom-left
-    // Edge midpoints
+    { x: 8, y: 8 },      // Top-left corner
+    { x: 92, y: 8 },     // Top-right corner
+    { x: 92, y: 92 },    // Bottom-right corner
+    { x: 8, y: 92 },     // Bottom-left corner
     { x: 50, y: 5 },     // Top-center
     { x: 95, y: 50 },    // Right-center
     { x: 50, y: 95 },    // Bottom-center
     { x: 5, y: 50 },     // Left-center
   ];
-  
-  // Shuffle and take first 'count' to keep it random each time
   const shuffled = [...positions];
   for(let i=shuffled.length-1; i>0; i--){
     const j = Math.floor(Math.random()*(i+1));
@@ -565,14 +667,14 @@ function generateBorderTargets(count=8){
   return shuffled.slice(0, count);
 }
 
+/* ---------- START LIVENESS CHALLENGE ---------- */
 function startLivenessChallenge(){
   if(!lastAuthLandmarks) return;
   document.getElementById('btn-start-liveness').disabled = true;
-  document.getElementById('auth-face-instructions').textContent = 'Follow the magenta dot with your head as it moves to the edges of the frame.';
+  document.getElementById('auth-face-instructions').textContent = '👁️ Follow the magenta dot with your eyes as it moves around the screen.';
   livenessRunning = true;
   livenessSamples = [];
-  spatialMovementData = [];
-  targetPath = generateBorderTargets(8);
+  targetPath = generateRandomBorderTargets(5);
   targetIndex = 0;
   
   const counterEl = document.getElementById('target-counter');
@@ -583,8 +685,7 @@ function startLivenessChallenge(){
   const targetEl = document.getElementById('liveness-target');
   targetEl.classList.remove('hidden');
   const statusEl = document.getElementById('status-auth');
-
-  STATE._baselineNose = { x: lastAuthLandmarks[NOSE_TIP].x, y: lastAuthLandmarks[NOSE_TIP].y };
+  const pupilTrack = document.getElementById('pupil-track');
 
   function showNext(){
     if(targetIndex >= targetPath.length){
@@ -595,32 +696,27 @@ function startLivenessChallenge(){
     targetEl.style.left = p.x + '%';
     targetEl.style.top = p.y + '%';
     STATE._currentTargetPos = p;
-    STATE._currentTargetShownAt = Date.now();
-    statusEl.textContent = `🎯 Follow the dot — position ${targetIndex+1}/${targetPath.length}`;
+    statusEl.textContent = `🎯 Follow target ${targetIndex+1}/${targetPath.length}`;
     counterEl.textContent = `${targetIndex+1} / ${targetPath.length}`;
     targetIndex++;
-    // 2-second dwell time per position
-    targetTimer = setTimeout(showNext, 2200);
+    targetTimer = setTimeout(showNext, 2200); // 2-second dwell
   }
   showNext();
 }
 
+/* ---------- FINISH LIVENESS ---------- */
 function finishLivenessChallenge(){
   livenessRunning = false;
   clearTimeout(targetTimer);
   stopSpectralLoop();
   document.getElementById('liveness-target').classList.add('hidden');
   document.getElementById('target-counter').style.display = 'none';
+  document.getElementById('pupil-track').classList.add('hidden');
   document.getElementById('status-auth').textContent = 'Challenge complete';
 
-  // ---- SPATIAL SCORE ----
-  // Measure head movement magnitude toward target positions
-  // A live person will move their head toward each target (or at least have correlated motion)
-  // A static photo/video will show near-zero movement.
-  
+  // ---- SPATIAL SCORE (using pupil position) ----
   let spatialScore = 0;
-  if(livenessSamples.length > 5){
-    // Calculate correlation between head movement direction and target direction
+  if(livenessSamples.length > 3){
     let correlationSum = 0;
     let validSamples = 0;
     
@@ -628,23 +724,18 @@ function finishLivenessChallenge(){
       const prev = livenessSamples[i-1];
       const curr = livenessSamples[i];
       
-      // Head movement vector (normalized)
-      const headDx = curr.nx - prev.nx;
-      const headDy = curr.ny - prev.ny;
-      const headMag = Math.sqrt(headDx*headDx + headDy*headDy);
+      const pupilDx = curr.px - prev.px;
+      const pupilDy = curr.py - prev.py;
+      const pupilMag = Math.sqrt(pupilDx*pupilDx + pupilDy*pupilDy);
       
-      // Target movement vector (normalized)
       const targetDx = curr.tx - prev.tx;
       const targetDy = curr.ty - prev.ty;
       const targetMag = Math.sqrt(targetDx*targetDx + targetDy*targetDy);
       
-      if(headMag > 0.0005 && targetMag > 0.01){
-        // Compute cosine similarity between head movement and target movement
-        const dot = headDx*targetDx + headDy*targetDy;
-        const norm = headMag * targetMag;
+      if(pupilMag > 0.0005 && targetMag > 0.005){
+        const dot = pupilDx*targetDx + pupilDy*targetDy;
+        const norm = pupilMag * targetMag;
         const similarity = Math.max(-1, Math.min(1, dot / norm));
-        // Similarity > 0 means moving in the same direction
-        // We want >= 0.3 for meaningful correlation
         correlationSum += Math.max(0, similarity);
         validSamples++;
       }
@@ -652,18 +743,17 @@ function finishLivenessChallenge(){
     
     if(validSamples > 3){
       const avgCorrelation = correlationSum / validSamples;
-      // Scale from 0-1: 0.3 correlation ~ 0.5 score, 0.8 correlation ~ 1.0 score
-      spatialScore = Math.min(1, (avgCorrelation - 0.2) / 0.6);
+      spatialScore = Math.min(1, Math.max(0, (avgCorrelation - 0.15) / 0.55));
     } else {
-      // Fallback: measure overall movement variance
-      const noseX = livenessSamples.map(s => s.nx);
-      const noseY = livenessSamples.map(s => s.ny);
+      // Fallback: measure pupil movement variance
+      const pupilX = livenessSamples.map(s => s.px);
+      const pupilY = livenessSamples.map(s => s.py);
       const variance = (arr) => {
         const m = arr.reduce((a,b) => a+b, 0) / arr.length;
         return arr.reduce((a,b) => a + (b-m)*(b-m), 0) / arr.length;
       };
-      const motionEnergy = variance(noseX) + variance(noseY);
-      spatialScore = Math.min(1, motionEnergy * 6000);
+      const motionEnergy = (variance(pupilX) + variance(pupilY)) * 10000;
+      spatialScore = Math.min(1, motionEnergy);
     }
   }
   
@@ -696,13 +786,13 @@ function finishLivenessChallenge(){
   }
   STATE.scores.face = faceScore;
 
-  // Log details for debugging
-  console.log('Spatial samples:', livenessSamples.length);
-  console.log('Spatial score:', STATE.scores.spatial);
-  console.log('Spectral samples:', spectralSamples.length);
-  console.log('Spectral score:', STATE.scores.spectral);
-  console.log('Temporal score:', STATE.scores.temporal);
-  console.log('Combined liveness:', STATE.scores.combinedLiveness);
+  console.log('=== KYC AURA RESULTS ===');
+  console.log('Face Score:', STATE.scores.face);
+  console.log('Spatial Score (pupil):', STATE.scores.spatial);
+  console.log('Spectral Score:', STATE.scores.spectral);
+  console.log('Temporal Score:', STATE.scores.temporal);
+  console.log('Combined Liveness:', STATE.scores.combinedLiveness);
+  console.log('Samples:', livenessSamples.length);
 
   stopCurrentCamera();
   setTimeout(()=>goTo('auth-pin'), 600);
@@ -773,7 +863,6 @@ function drawMeshDots(ctx, landmarks, w, h, color){
 /* ============================================================
    CAMERA LIFECYCLE
    ============================================================ */
-let currentStream = null;
 let currentCameraUtil = null;
 
 function startCameraFeed(videoEl, fm){
@@ -799,10 +888,10 @@ function showDecision(){
   goTo('decision');
   const s = STATE.scores;
   const facePass = s.face >= 0.80;
-  const spatialPass = s.spatial >= 0.40;        // Increased threshold for better security
+  const spatialPass = s.spatial >= 0.40;
   const spectralPass = s.spectral >= 0.5;
   const temporalPass = s.temporal >= 0.6;
-  const livenessPass = s.combinedLiveness >= 0.50;  // Adjusted for stricter scoring
+  const livenessPass = s.combinedLiveness >= 0.50;
   const pinPass = s.pinMatch;
   const allPass = facePass && livenessPass && pinPass;
 
