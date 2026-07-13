@@ -70,6 +70,7 @@
   }
   video{ width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
   canvas.overlay{ position:absolute; inset:0; width:100%; height:100%; transform:scaleX(-1);}
+  
   .ring{
     position:absolute; inset:0; border-radius:20px; pointer-events:none;
     border:3px solid var(--aura-dim); transition: all .25s ease;
@@ -82,31 +83,72 @@
     background:rgba(10,14,26,0.75); backdrop-filter:blur(6px);
     font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--aura);
     border:1px solid var(--aura-dim); display:flex; align-items:center; gap:6px;
+    z-index:15;
   }
   .dot-pulse{ width:6px; height:6px; border-radius:50%; background:var(--aura); animation:pulse 1.2s infinite;}
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-  /* HEAD SILHOUETTE GUIDE */
-  .silhouette{
-    position:absolute; inset:0; border-radius:20px; pointer-events:none;
-    display:flex; align-items:center; justify-content:center; z-index:5;
+  /* ============================================================
+     PRECISE FACIAL GRID OVERLAY — Professional grade
+     ============================================================ */
+  .face-grid{
+    position:absolute; inset:0; border-radius:20px; pointer-events:none; z-index:5;
   }
-  .silhouette svg{
-    width:45%; height:45%; opacity:0.25;
-    transition: opacity 0.5s ease;
+  .face-grid svg{
+    width:100%; height:100%; display:block;
   }
-  .silhouette.aligned svg{ opacity:0.5; }
-  .silhouette svg .outline{ stroke:#34E7E7; stroke-width:2; fill:none; }
-  .silhouette svg .eyes{ fill:#34E7E7; opacity:0.4; }
-  .silhouette .status-text{
-    position:absolute; bottom:15%; left:50%; transform:translateX(-50%);
-    font-size:12px; color:var(--text-dim); background:rgba(0,0,0,0.6); padding:4px 14px; border-radius:12px;
-    font-family:'JetBrains Mono',monospace;
+  .face-grid .boundary{
+    stroke: rgba(52,231,231,0.6); stroke-width:2; fill:rgba(52,231,231,0.05);
+    transition: stroke 0.3s ease;
   }
-  .silhouette.aligned .status-text{ color:var(--pass); }
-  .silhouette:not(.aligned) .status-text{ color:var(--fail); }
+  .face-grid .boundary.aligned{
+    stroke: rgba(60,230,139,0.9);
+    fill:rgba(60,230,139,0.08);
+  }
+  .face-grid .boundary.off{
+    stroke: rgba(255,92,108,0.7);
+    fill:rgba(255,92,108,0.05);
+  }
+  .face-grid .guide-line{
+    stroke: rgba(255,255,255,0.15); stroke-width:1; stroke-dasharray:4 4;
+  }
+  .face-grid .guide-line.primary{
+    stroke: rgba(255,255,255,0.25); stroke-width:1.5; stroke-dasharray:none;
+  }
+  .face-grid .guide-line.dim{
+    stroke: rgba(255,255,255,0.08); stroke-width:0.5; stroke-dasharray:2 4;
+  }
+  .face-grid .marker{
+    fill: rgba(52,231,231,0.4);
+  }
+  .face-grid .marker.aligned{
+    fill: rgba(60,230,139,0.6);
+  }
+  .face-grid .label{
+    font-family:'JetBrains Mono',monospace; font-size:8px;
+    fill: rgba(255,255,255,0.2); letter-spacing:1px;
+  }
+  .face-grid .label.active{
+    fill: rgba(52,231,231,0.5);
+  }
 
-  /* TARGET DOT */
+  /* Alignment status indicators at the bottom */
+  .align-status{
+    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+    font-family:'JetBrains Mono',monospace; font-size:10px;
+    padding:4px 14px; border-radius:12px; background:rgba(0,0,0,0.6);
+    border:1px solid var(--line); z-index:15;
+    display:flex; align-items:center; gap:8px;
+    transition: all 0.3s ease;
+  }
+  .align-status .dot{
+    width:6px; height:6px; border-radius:50%; display:inline-block;
+  }
+  .align-status .dot.good{ background:var(--pass); }
+  .align-status .dot.fair{ background:var(--retry); }
+  .align-status .dot.poor{ background:var(--fail); animation:blink 0.8s infinite; }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
   .target{
     position:absolute; width:32px; height:32px; border-radius:50%;
     background:var(--spectral-magenta); 
@@ -126,7 +168,6 @@
     50%{ transform:scale(1.5); opacity:0; }
   }
 
-  /* PUPIL TRACKING INDICATOR */
   .pupil-track{
     position:absolute; width:8px; height:8px; border-radius:50%;
     background:#FFD84D; box-shadow:0 0 12px #FFD84D;
@@ -175,10 +216,10 @@
   .hidden{ display:none !important; }
 
   #target-counter{
-    position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+    position:absolute; bottom:50px; left:50%; transform:translateX(-50%);
     background:rgba(0,0,0,0.7); color:#fff; padding:4px 12px; border-radius:12px;
     font-size:12px; font-family:'JetBrains Mono',monospace;
-    display:none; border:1px solid var(--line);
+    display:none; border:1px solid var(--line); z-index:12;
   }
 </style>
 </head>
@@ -189,7 +230,7 @@
     <div class="aura-mark"></div>
     <div>
       <h1>KYC Aura</h1>
-      <p>Multimodal Auth Demo · v0.2</p>
+      <p>Multimodal Auth Demo · v0.3</p>
     </div>
   </header>
 
@@ -203,7 +244,7 @@
     </div>
     <div class="card">
       <div class="eyebrow">What this proves</div>
-      <p class="sub" style="margin-bottom:0">✓ Live face tracking with 468-point mesh<br>✓ Real pupil tracking (not head proxy)<br>✓ Motion-based liveness challenge<br>✓ Session-scrambled PIN keypad</p>
+      <p class="sub" style="margin-bottom:0">✓ Live face tracking with precise grid overlay<br>✓ Real pupil tracking (not head proxy)<br>✓ Motion-based liveness challenge<br>✓ Session-scrambled PIN keypad</p>
     </div>
     <footer class="note">Research prototype — not production-grade biometric matching.</footer>
   </section>
@@ -212,24 +253,63 @@
   <section class="screen" id="screen-enroll-face">
     <div class="eyebrow">Step 1 of 4</div>
     <h2>Enroll Your Face</h2>
-    <p class="sub">Center your face in the silhouette guide. Hold still for 3 seconds once the ring turns green.</p>
+    <p class="sub">Position your face inside the oval guide. Hold still for 3 seconds once the ring turns green.</p>
     <div class="video-wrap">
       <video id="video-enroll" autoplay playsinline muted></video>
       <canvas class="overlay" id="canvas-enroll"></canvas>
-      <div id="silhouette-enroll" class="silhouette">
-        <svg viewBox="0 0 100 100">
-          <circle class="outline" cx="50" cy="48" r="32"/>
-          <ellipse class="outline" cx="50" cy="48" rx="28" ry="34"/>
-          <circle class="outline" cx="40" cy="42" r="5"/>
-          <circle class="outline" cx="60" cy="42" r="5"/>
-          <ellipse class="outline" cx="50" cy="52" rx="12" ry="6"/>
-          <circle class="eyes" cx="40" cy="42" r="4"/>
-          <circle class="eyes" cx="60" cy="42" r="4"/>
+      
+      <!-- PRECISE FACIAL GRID OVERLAY -->
+      <div class="face-grid" id="grid-enroll">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+          <!-- Outer boundary oval -->
+          <ellipse class="boundary" id="boundary-enroll" cx="50" cy="48" rx="28" ry="34"/>
+          
+          <!-- Chin baseline -->
+          <line class="guide-line primary" x1="22" y1="82" x2="78" y2="82"/>
+          <text class="label" x="2" y="85">CHIN LINE</text>
+          
+          <!-- Eye level line -->
+          <line class="guide-line primary" x1="18" y1="40" x2="82" y2="40"/>
+          <text class="label" x="2" y="43">EYE LEVEL</text>
+          
+          <!-- Nose center line -->
+          <line class="guide-line primary" x1="50" y1="10" x2="50" y2="90"/>
+          <text class="label" x="52" y="12">CENTER</text>
+          
+          <!-- Mouth line -->
+          <line class="guide-line" x1="25" y1="60" x2="75" y2="60"/>
+          <text class="label" x="2" y="63">MOUTH LINE</text>
+          
+          <!-- Eye markers -->
+          <circle class="marker" id="marker-left-enroll" cx="40" cy="40" r="3"/>
+          <circle class="marker" id="marker-right-enroll" cx="60" cy="40" r="3"/>
+          <text class="label" x="33" y="46">◀</text>
+          <text class="label" x="63" y="46">▶</text>
+          
+          <!-- Distance guides -->
+          <line class="guide-line dim" x1="20" y1="20" x2="20" y2="80"/>
+          <line class="guide-line dim" x1="80" y1="20" x2="80" y2="80"/>
+          
+          <!-- Top and bottom markers -->
+          <line class="guide-line dim" x1="22" y1="14" x2="78" y2="14"/>
+          <text class="label" x="2" y="17">TOP</text>
+          <line class="guide-line dim" x1="22" y1="86" x2="78" y2="86"/>
+          <text class="label" x="2" y="89">BOTTOM</text>
+          
+          <!-- Corner brackets -->
+          <path class="guide-line dim" d="M10,10 L18,10 L18,18"/>
+          <path class="guide-line dim" d="M90,10 L82,10 L82,18"/>
+          <path class="guide-line dim" d="M10,90 L18,90 L18,82"/>
+          <path class="guide-line dim" d="M90,90 L82,90 L82,82"/>
         </svg>
-        <div class="status-text">👤 Center your face</div>
       </div>
+      
       <div class="ring" id="ring-enroll"></div>
       <div class="status-chip"><span class="dot-pulse"></span><span id="status-enroll">Starting camera…</span></div>
+      <div class="align-status" id="align-status-enroll">
+        <span class="dot poor" id="align-dot-enroll"></span>
+        <span id="align-text-enroll">Position face</span>
+      </div>
     </div>
     <button class="btn-primary" id="btn-enroll-capture" disabled onclick="captureEnrollment()">Hold Still to Capture</button>
   </section>
@@ -248,28 +328,50 @@
   <section class="screen" id="screen-auth-face">
     <div class="eyebrow">Step 3 of 4 · Authenticate</div>
     <h2>Face + Liveness Check</h2>
-    <p class="sub" id="auth-face-instructions">Center your face. Then follow the magenta dot with your eyes as it moves around the frame.</p>
+    <p class="sub" id="auth-face-instructions">Position your face. Then follow the magenta dot with your eyes as it moves around the frame.</p>
     <div class="video-wrap">
       <video id="video-auth" autoplay playsinline muted></video>
       <canvas class="overlay" id="canvas-auth"></canvas>
-      <div id="silhouette-auth" class="silhouette">
-        <svg viewBox="0 0 100 100">
-          <circle class="outline" cx="50" cy="48" r="32"/>
-          <ellipse class="outline" cx="50" cy="48" rx="28" ry="34"/>
-          <circle class="outline" cx="40" cy="42" r="5"/>
-          <circle class="outline" cx="60" cy="42" r="5"/>
-          <ellipse class="outline" cx="50" cy="52" rx="12" ry="6"/>
-          <circle class="eyes" cx="40" cy="42" r="4"/>
-          <circle class="eyes" cx="60" cy="42" r="4"/>
+      
+      <!-- PRECISE FACIAL GRID OVERLAY -->
+      <div class="face-grid" id="grid-auth">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+          <ellipse class="boundary" id="boundary-auth" cx="50" cy="48" rx="28" ry="34"/>
+          <line class="guide-line primary" x1="22" y1="82" x2="78" y2="82"/>
+          <text class="label" x="2" y="85">CHIN LINE</text>
+          <line class="guide-line primary" x1="18" y1="40" x2="82" y2="40"/>
+          <text class="label" x="2" y="43">EYE LEVEL</text>
+          <line class="guide-line primary" x1="50" y1="10" x2="50" y2="90"/>
+          <text class="label" x="52" y="12">CENTER</text>
+          <line class="guide-line" x1="25" y1="60" x2="75" y2="60"/>
+          <text class="label" x="2" y="63">MOUTH LINE</text>
+          <circle class="marker" id="marker-left-auth" cx="40" cy="40" r="3"/>
+          <circle class="marker" id="marker-right-auth" cx="60" cy="40" r="3"/>
+          <text class="label" x="33" y="46">◀</text>
+          <text class="label" x="63" y="46">▶</text>
+          <line class="guide-line dim" x1="20" y1="20" x2="20" y2="80"/>
+          <line class="guide-line dim" x1="80" y1="20" x2="80" y2="80"/>
+          <line class="guide-line dim" x1="22" y1="14" x2="78" y2="14"/>
+          <text class="label" x="2" y="17">TOP</text>
+          <line class="guide-line dim" x1="22" y1="86" x2="78" y2="86"/>
+          <text class="label" x="2" y="89">BOTTOM</text>
+          <path class="guide-line dim" d="M10,10 L18,10 L18,18"/>
+          <path class="guide-line dim" d="M90,10 L82,10 L82,18"/>
+          <path class="guide-line dim" d="M10,90 L18,90 L18,82"/>
+          <path class="guide-line dim" d="M90,90 L82,90 L82,82"/>
         </svg>
-        <div class="status-text">👤 Center your face</div>
       </div>
+      
       <div class="ring" id="ring-auth"></div>
       <div class="target hidden" id="liveness-target">
         <div class="pulse-ring"></div>
       </div>
       <div class="pupil-track hidden" id="pupil-track"></div>
       <div class="status-chip"><span class="dot-pulse"></span><span id="status-auth">Starting camera…</span></div>
+      <div class="align-status" id="align-status-auth">
+        <span class="dot poor" id="align-dot-auth"></span>
+        <span id="align-text-auth">Position face</span>
+      </div>
       <div id="target-counter">0 / 5</div>
     </div>
     <button class="btn-primary" id="btn-start-liveness" disabled onclick="startLivenessChallenge()">Begin Liveness Challenge</button>
@@ -325,7 +427,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script>
 /* ============================================================
-   KYC AURA — DEMO STATE (v0.2 with real pupil tracking)
+   KYC AURA — DEMO STATE (v0.3 with precise face grid)
    ============================================================ */
 const STATE = {
   enrolledVector: null,
@@ -342,15 +444,19 @@ const LEFT_EYE = 33;
 const RIGHT_EYE = 263;
 const JAW_LEFT = 234;
 const JAW_RIGHT = 454;
+const MOUTH_LEFT = 61;
+const MOUTH_RIGHT = 291;
+const FOREHEAD = 10;
+const CHIN = 152;
 
 const FEATURE_PAIRS = [
   [LEFT_EYE, RIGHT_EYE],
-  [NOSE_TIP, 152],
-  [61,291],
+  [NOSE_TIP, CHIN],
+  [MOUTH_LEFT, MOUTH_RIGHT],
   [70,300],
   [NOSE_TIP, LEFT_EYE],
   [NOSE_TIP, RIGHT_EYE],
-  [10,152],
+  [FOREHEAD, CHIN],
   [JAW_LEFT, JAW_RIGHT]
 ];
 
@@ -400,6 +506,76 @@ function getFaceMesh(){
   return faceMesh;
 }
 
+/* ---------- ALIGNMENT TRACKING ---------- */
+function checkFaceAlignment(landmarks, gridId, statusId, dotId, textId, boundaryId, markerLeftId, markerRightId){
+  if(!landmarks) return;
+  
+  const nose = landmarks[NOSE_TIP];
+  const lEye = landmarks[LEFT_EYE];
+  const rEye = landmarks[RIGHT_EYE];
+  const chin = landmarks[CHIN];
+  
+  if(!nose || !lEye || !rEye || !chin) return;
+  
+  // Calculate face center and size
+  const centerX = (lEye.x + rEye.x) / 2;
+  const centerY = (lEye.y + rEye.y) / 2;
+  const faceWidth = Math.abs(lEye.x - rEye.x);
+  const faceHeight = Math.abs(chin.y - (lEye.y + rEye.y)/2);
+  
+  // Ideal ranges (normalized 0-1)
+  const idealWidth = 0.18; // Face should occupy ~18% of frame width
+  const idealHeight = 0.30; // ~30% of frame height
+  const idealCenterX = 0.5;
+  const idealCenterY = 0.48;
+  
+  // Calculate deviation
+  const widthRatio = faceWidth / idealWidth;
+  const heightRatio = faceHeight / idealHeight;
+  const distX = Math.abs(centerX - idealCenterX);
+  const distY = Math.abs(centerY - idealCenterY);
+  
+  // Score: 0-1 alignment quality
+  const sizeScore = Math.min(1, 1 / Math.max(0.3, Math.min(3, (widthRatio + heightRatio) / 2)));
+  const posScore = Math.min(1, 1 / (1 + (distX*8 + distY*8)));
+  const alignScore = (sizeScore * 0.5 + posScore * 0.5);
+  
+  // Update UI
+  const boundary = document.getElementById(boundaryId);
+  const markerL = document.getElementById(markerLeftId);
+  const markerR = document.getElementById(markerRightId);
+  const statusEl = document.getElementById(statusId);
+  const dotEl = document.getElementById(dotId);
+  const textEl = document.getElementById(textId);
+  
+  if(alignScore > 0.7){
+    boundary.classList.remove('off');
+    boundary.classList.add('aligned');
+    markerL.classList.add('aligned');
+    markerR.classList.add('aligned');
+    dotEl.className = 'dot good';
+    textEl.textContent = 'Face aligned ✅';
+    statusEl.textContent = 'Face aligned — hold still';
+  } else if(alignScore > 0.4){
+    boundary.classList.remove('aligned', 'off');
+    markerL.classList.remove('aligned');
+    markerR.classList.remove('aligned');
+    dotEl.className = 'dot fair';
+    textEl.textContent = distX > 0.08 ? 'Center your face' : 'Adjust distance';
+    statusEl.textContent = 'Adjust position';
+  } else {
+    boundary.classList.remove('aligned');
+    boundary.classList.add('off');
+    markerL.classList.remove('aligned');
+    markerR.classList.remove('aligned');
+    dotEl.className = 'dot poor';
+    textEl.textContent = 'Face not detected / too far';
+    statusEl.textContent = 'No face';
+  }
+  
+  return alignScore;
+}
+
 /* ---------- ENROLL CAMERA ---------- */
 let enrollHoldStart = null;
 let lastEnrollLandmarks = null;
@@ -412,7 +588,6 @@ function initEnrollCamera(){
   const statusEl = document.getElementById('status-enroll');
   const ringEl = document.getElementById('ring-enroll');
   const btn = document.getElementById('btn-enroll-capture');
-  const silEl = document.getElementById('silhouette-enroll');
 
   const fm = getFaceMesh();
   fm.onResults((results)=>{
@@ -427,20 +602,25 @@ function initEnrollCamera(){
       lastEnrollLandmarks = lm;
       drawMeshDots(ctx, lm, canvasEl.width, canvasEl.height, '#34E7E7');
       ringEl.classList.add('tracking');
-      silEl.classList.add('aligned');
-      silEl.querySelector('.status-text').textContent = '✅ Face aligned';
-      statusEl.textContent = 'Face detected — hold still…';
-      if(!enrollHoldStart) enrollHoldStart = Date.now();
-      const held = Date.now() - enrollHoldStart;
-      if(held > 900){ btn.disabled = false; statusEl.textContent = 'Ready to capture'; }
+      
+      // Update alignment
+      const alignScore = checkFaceAlignment(lm, 'enroll', 'status-enroll', 'align-dot-enroll', 'align-text-enroll', 'boundary-enroll', 'marker-left-enroll', 'marker-right-enroll');
+      
+      if(alignScore > 0.7){
+        if(!enrollHoldStart) enrollHoldStart = Date.now();
+        const held = Date.now() - enrollHoldStart;
+        if(held > 900){ btn.disabled = false; statusEl.textContent = 'Ready to capture'; }
+      } else {
+        enrollHoldStart = null;
+        btn.disabled = true;
+      }
     } else {
       lastEnrollLandmarks = null;
       enrollHoldStart = null;
       ringEl.classList.remove('tracking');
-      silEl.classList.remove('aligned');
-      silEl.querySelector('.status-text').textContent = '👤 Center your face';
       btn.disabled = true;
-      statusEl.textContent = 'No face detected — center yourself';
+      statusEl.textContent = 'No face detected';
+      document.getElementById('boundary-enroll').className = 'boundary off';
     }
   });
 
@@ -490,7 +670,6 @@ function initAuthCamera(){
   const statusEl = document.getElementById('status-auth');
   const ringEl = document.getElementById('ring-auth');
   const btn = document.getElementById('btn-start-liveness');
-  const silEl = document.getElementById('silhouette-auth');
   const pupilTrack = document.getElementById('pupil-track');
 
   const fm = getFaceMesh();
@@ -505,12 +684,15 @@ function initAuthCamera(){
       lastAuthLandmarks = lm;
       drawMeshDots(ctx, lm, canvasEl.width, canvasEl.height, livenessRunning ? '#E14DFF' : '#34E7E7');
       ringEl.classList.add('tracking');
-      silEl.classList.add('aligned');
-      silEl.querySelector('.status-text').textContent = '✅ Face aligned';
+      
+      // Update alignment
+      const alignScore = checkFaceAlignment(lm, 'auth', 'status-auth', 'align-dot-auth', 'align-text-auth', 'boundary-auth', 'marker-left-auth', 'marker-right-auth');
 
-      // Track pupil position for visual feedback
+      if(!livenessRunning && alignScore > 0.7){
+        btn.disabled = false;
+      }
+
       if(livenessRunning){
-        // Get average of left and right iris position
         const lIris = lm[LEFT_IRIS];
         const rIris = lm[RIGHT_IRIS];
         if(lIris && rIris){
@@ -521,8 +703,6 @@ function initAuthCamera(){
           pupilTrack.classList.remove('hidden');
           pupilTrack.classList.add('visible');
         }
-        // Track pupil movement samples
-        const nose = lm[NOSE_TIP];
         const lEye = lm[LEFT_EYE];
         const rEye = lm[RIGHT_EYE];
         if(lEye && rEye){
@@ -537,15 +717,10 @@ function initAuthCamera(){
           });
         }
         statusEl.textContent = `🎯 Following target ${targetIndex}/${targetPath.length}`;
-      } else {
-        statusEl.textContent = 'Face detected';
-        btn.disabled = false;
       }
     } else {
       lastAuthLandmarks = null;
       ringEl.classList.remove('tracking');
-      silEl.classList.remove('aligned');
-      silEl.querySelector('.status-text').textContent = '👤 Center your face';
       if(!livenessRunning) btn.disabled = true;
       statusEl.textContent = 'No face detected';
       pupilTrack.classList.add('hidden');
@@ -650,14 +825,8 @@ function computeSpectralScore(samples){
 /* ---------- SPATIAL TARGET GENERATION ---------- */
 function generateRandomBorderTargets(count=5){
   const positions = [
-    { x: 8, y: 8 },      // Top-left corner
-    { x: 92, y: 8 },     // Top-right corner
-    { x: 92, y: 92 },    // Bottom-right corner
-    { x: 8, y: 92 },     // Bottom-left corner
-    { x: 50, y: 5 },     // Top-center
-    { x: 95, y: 50 },    // Right-center
-    { x: 50, y: 95 },    // Bottom-center
-    { x: 5, y: 50 },     // Left-center
+    { x: 8, y: 8 }, { x: 92, y: 8 }, { x: 92, y: 92 }, { x: 8, y: 92 },
+    { x: 50, y: 5 }, { x: 95, y: 50 }, { x: 50, y: 95 }, { x: 5, y: 50 }
   ];
   const shuffled = [...positions];
   for(let i=shuffled.length-1; i>0; i--){
@@ -685,7 +854,6 @@ function startLivenessChallenge(){
   const targetEl = document.getElementById('liveness-target');
   targetEl.classList.remove('hidden');
   const statusEl = document.getElementById('status-auth');
-  const pupilTrack = document.getElementById('pupil-track');
 
   function showNext(){
     if(targetIndex >= targetPath.length){
@@ -699,7 +867,7 @@ function startLivenessChallenge(){
     statusEl.textContent = `🎯 Follow target ${targetIndex+1}/${targetPath.length}`;
     counterEl.textContent = `${targetIndex+1} / ${targetPath.length}`;
     targetIndex++;
-    targetTimer = setTimeout(showNext, 2200); // 2-second dwell
+    targetTimer = setTimeout(showNext, 2200);
   }
   showNext();
 }
@@ -714,7 +882,7 @@ function finishLivenessChallenge(){
   document.getElementById('pupil-track').classList.add('hidden');
   document.getElementById('status-auth').textContent = 'Challenge complete';
 
-  // ---- SPATIAL SCORE (using pupil position) ----
+  // ---- SPATIAL SCORE ----
   let spatialScore = 0;
   if(livenessSamples.length > 3){
     let correlationSum = 0;
@@ -745,7 +913,6 @@ function finishLivenessChallenge(){
       const avgCorrelation = correlationSum / validSamples;
       spatialScore = Math.min(1, Math.max(0, (avgCorrelation - 0.15) / 0.55));
     } else {
-      // Fallback: measure pupil movement variance
       const pupilX = livenessSamples.map(s => s.px);
       const pupilY = livenessSamples.map(s => s.py);
       const variance = (arr) => {
@@ -786,7 +953,7 @@ function finishLivenessChallenge(){
   }
   STATE.scores.face = faceScore;
 
-  console.log('=== KYC AURA RESULTS ===');
+  console.log('=== KYC AURA RESULTS (v0.3) ===');
   console.log('Face Score:', STATE.scores.face);
   console.log('Spatial Score (pupil):', STATE.scores.spatial);
   console.log('Spectral Score:', STATE.scores.spectral);
