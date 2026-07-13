@@ -23,6 +23,7 @@
     --pass:#3CE68B;
     --fail:#FF5C6C;
     --retry:#FFC24D;
+    --relaxing-blue: #91B2C7;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html,body{
@@ -89,7 +90,7 @@
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
   /* ============================================================
-     PRECISE FACIAL GRID OVERLAY — LARGER OVAL
+     PRECISE FACIAL GRID OVERLAY — LARGER OVAL (85%)
      ============================================================ */
   .face-grid{
     position:absolute; inset:0; border-radius:20px; pointer-events:none; z-index:5;
@@ -113,23 +114,17 @@
     stroke: rgba(255,255,255,0.15); stroke-width:1; stroke-dasharray:4 4;
   }
   .face-grid .guide-line.primary{
-    stroke: rgba(255,255,255,0.25); stroke-width:1.5; stroke-dasharray:none;
+    stroke: rgba(255,255,255,0.2); stroke-width:1.5; stroke-dasharray:none;
   }
   .face-grid .guide-line.dim{
-    stroke: rgba(255,255,255,0.08); stroke-width:0.5; stroke-dasharray:2 4;
-  }
-  .face-grid .marker{
-    fill: rgba(52,231,231,0.4);
-  }
-  .face-grid .marker.aligned{
-    fill: rgba(60,230,139,0.6);
+    stroke: rgba(255,255,255,0.06); stroke-width:0.5; stroke-dasharray:2 4;
   }
   .face-grid .label{
-    font-family:'JetBrains Mono',monospace; font-size:8px;
-    fill: rgba(255,255,255,0.2); letter-spacing:1px;
+    font-family:'JetBrains Mono',monospace; font-size:6px;
+    fill: rgba(255,255,255,0.2); letter-spacing:0.5px;
   }
   .face-grid .label.active{
-    fill: rgba(52,231,231,0.5);
+    fill: rgba(52,231,231,0.4);
   }
 
   .align-status{
@@ -148,18 +143,19 @@
   .align-status .dot.poor{ background:var(--fail); animation:blink 0.8s infinite; }
   @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.2;} }
 
+  /* RELAXING BLUE TARGET DOT (#91B2C7) */
   .target{
     position:absolute; width:32px; height:32px; border-radius:50%;
-    background:var(--spectral-magenta); 
-    box-shadow: 0 0 40px var(--spectral-magenta), 0 0 80px rgba(225,77,255,0.5);
-    transform:translate(-50%,-50%); 
+    background: var(--relaxing-blue);
+    box-shadow: 0 0 40px rgba(145,178,199,0.6), 0 0 80px rgba(145,178,199,0.3);
+    transform:translate(-50%,-50%);
     transition: left 0.1s ease, top 0.1s ease;
     z-index:10;
-    border:2px solid rgba(255,255,255,0.5);
+    border:2px solid rgba(255,255,255,0.3);
   }
   .target .pulse-ring{
     position:absolute; inset:-8px; border-radius:50%;
-    border:2px solid rgba(255,255,255,0.3);
+    border:2px solid rgba(145,178,199,0.3);
     animation: pulse-ring 1.5s ease-in-out infinite;
   }
   @keyframes pulse-ring{
@@ -229,7 +225,7 @@
     <div class="aura-mark"></div>
     <div>
       <h1>KYC Aura</h1>
-      <p>Multimodal Auth Demo · v0.4</p>
+      <p>Multimodal Auth Demo · v0.5</p>
     </div>
   </header>
 
@@ -252,52 +248,48 @@
   <section class="screen" id="screen-enroll-face">
     <div class="eyebrow">Step 1 of 4</div>
     <h2>Enroll Your Face</h2>
-    <p class="sub" id="enroll-instruction">Position your face inside the oval guide. Your eyes should align with the blue markers. Hold still for 3 seconds once the ring turns green.</p>
+    <p class="sub" id="enroll-instruction">Position your face inside the oval guide. Hold still for 3 seconds once the ring turns green.</p>
     <div class="video-wrap">
       <video id="video-enroll" autoplay playsinline muted></video>
       <canvas class="overlay" id="canvas-enroll"></canvas>
       
-      <!-- LARGER FACIAL GRID OVERLAY (FIX 1: oval now covers ~60% of frame) -->
+      <!-- LARGE FACIAL GRID OVERLAY (85% oval) -->
       <div class="face-grid" id="grid-enroll">
         <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-          <!-- LARGER Outer boundary oval: increased from rx=28/ry=34 to rx=38/ry=44 -->
-          <ellipse class="boundary" id="boundary-enroll" cx="50" cy="48" rx="38" ry="44"/>
+          <!-- OVAL: 85% of frame -->
+          <ellipse class="boundary" id="boundary-enroll" cx="50" cy="50" rx="42" ry="48"/>
           
-          <!-- Chin baseline -->
-          <line class="guide-line primary" x1="12" y1="92" x2="88" y2="92"/>
-          <text class="label" x="2" y="95">CHIN</text>
+          <!-- Eye Level Line -->
+          <line class="guide-line primary" x1="8" y1="38" x2="92" y2="38"/>
+          <text class="label" x="2" y="41">EYE</text>
           
-          <!-- Eye level line -->
-          <line class="guide-line primary" x1="10" y1="35" x2="90" y2="35"/>
-          <text class="label" x="2" y="38">EYE LEVEL</text>
-          
-          <!-- Center line -->
+          <!-- Nose Center Line -->
           <line class="guide-line primary" x1="50" y1="4" x2="50" y2="96"/>
-          <text class="label" x="52" y="6">CENTER</text>
+          <text class="label" x="52" y="6">NOSE</text>
           
-          <!-- Mouth line -->
-          <line class="guide-line" x1="20" y1="60" x2="80" y2="60"/>
-          <text class="label" x="2" y="63">MOUTH</text>
+          <!-- Mouth Line -->
+          <line class="guide-line" x1="20" y1="62" x2="80" y2="62"/>
+          <text class="label" x="2" y="65">MOUTH</text>
           
-          <!-- Eye markers -->
-          <circle class="marker" id="marker-left-enroll" cx="38" cy="35" r="4"/>
-          <circle class="marker" id="marker-right-enroll" cx="62" cy="35" r="4"/>
+          <!-- Chin Baseline -->
+          <line class="guide-line primary" x1="12" y1="96" x2="88" y2="96"/>
+          <text class="label" x="2" y="99">CHIN</text>
           
           <!-- Distance guides -->
-          <line class="guide-line dim" x1="12" y1="8" x2="12" y2="92"/>
-          <line class="guide-line dim" x1="88" y1="8" x2="88" y2="92"/>
+          <line class="guide-line dim" x1="8" y1="4" x2="8" y2="96"/>
+          <line class="guide-line dim" x1="92" y1="4" x2="92" y2="96"/>
           
           <!-- Top and bottom markers -->
-          <line class="guide-line dim" x1="12" y1="4" x2="88" y2="4"/>
+          <line class="guide-line dim" x1="8" y1="4" x2="92" y2="4"/>
           <text class="label" x="2" y="7">TOP</text>
-          <line class="guide-line dim" x1="12" y1="96" x2="88" y2="96"/>
+          <line class="guide-line dim" x1="8" y1="96" x2="92" y2="96"/>
           <text class="label" x="2" y="99">BOTTOM</text>
           
           <!-- Corner brackets -->
-          <path class="guide-line dim" d="M6,6 L14,6 L14,14"/>
-          <path class="guide-line dim" d="M94,6 L86,6 L86,14"/>
-          <path class="guide-line dim" d="M6,94 L14,94 L14,86"/>
-          <path class="guide-line dim" d="M94,94 L86,94 L86,86"/>
+          <path class="guide-line dim" d="M4,4 L12,4 L12,12"/>
+          <path class="guide-line dim" d="M96,4 L88,4 L88,12"/>
+          <path class="guide-line dim" d="M4,96 L12,96 L12,88"/>
+          <path class="guide-line dim" d="M96,96 L88,96 L88,88"/>
         </svg>
       </div>
       
@@ -325,36 +317,33 @@
   <section class="screen" id="screen-auth-face">
     <div class="eyebrow">Step 3 of 4 · Authenticate</div>
     <h2>Face + Liveness Check</h2>
-    <p class="sub" id="auth-face-instructions">Position your face inside the oval guide. Then follow the magenta dot with your eyes as it moves around the frame.</p>
+    <p class="sub" id="auth-face-instructions">Position your face inside the oval guide. Then follow the Relaxing Blue dot with your eyes as it moves around the frame.</p>
     <div class="video-wrap">
       <video id="video-auth" autoplay playsinline muted></video>
       <canvas class="overlay" id="canvas-auth"></canvas>
       
-      <!-- LARGER FACIAL GRID OVERLAY -->
+      <!-- LARGE FACIAL GRID OVERLAY (85% oval) -->
       <div class="face-grid" id="grid-auth">
         <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-          <!-- LARGER oval -->
-          <ellipse class="boundary" id="boundary-auth" cx="50" cy="48" rx="38" ry="44"/>
-          <line class="guide-line primary" x1="12" y1="92" x2="88" y2="92"/>
-          <text class="label" x="2" y="95">CHIN</text>
-          <line class="guide-line primary" x1="10" y1="35" x2="90" y2="35"/>
-          <text class="label" x="2" y="38">EYE LEVEL</text>
+          <ellipse class="boundary" id="boundary-auth" cx="50" cy="50" rx="42" ry="48"/>
+          <line class="guide-line primary" x1="8" y1="38" x2="92" y2="38"/>
+          <text class="label" x="2" y="41">EYE</text>
           <line class="guide-line primary" x1="50" y1="4" x2="50" y2="96"/>
-          <text class="label" x="52" y="6">CENTER</text>
-          <line class="guide-line" x1="20" y1="60" x2="80" y2="60"/>
-          <text class="label" x="2" y="63">MOUTH</text>
-          <circle class="marker" id="marker-left-auth" cx="38" cy="35" r="4"/>
-          <circle class="marker" id="marker-right-auth" cx="62" cy="35" r="4"/>
-          <line class="guide-line dim" x1="12" y1="8" x2="12" y2="92"/>
-          <line class="guide-line dim" x1="88" y1="8" x2="88" y2="92"/>
-          <line class="guide-line dim" x1="12" y1="4" x2="88" y2="4"/>
+          <text class="label" x="52" y="6">NOSE</text>
+          <line class="guide-line" x1="20" y1="62" x2="80" y2="62"/>
+          <text class="label" x="2" y="65">MOUTH</text>
+          <line class="guide-line primary" x1="12" y1="96" x2="88" y2="96"/>
+          <text class="label" x="2" y="99">CHIN</text>
+          <line class="guide-line dim" x1="8" y1="4" x2="8" y2="96"/>
+          <line class="guide-line dim" x1="92" y1="4" x2="92" y2="96"/>
+          <line class="guide-line dim" x1="8" y1="4" x2="92" y2="4"/>
           <text class="label" x="2" y="7">TOP</text>
-          <line class="guide-line dim" x1="12" y1="96" x2="88" y2="96"/>
+          <line class="guide-line dim" x1="8" y1="96" x2="92" y2="96"/>
           <text class="label" x="2" y="99">BOTTOM</text>
-          <path class="guide-line dim" d="M6,6 L14,6 L14,14"/>
-          <path class="guide-line dim" d="M94,6 L86,6 L86,14"/>
-          <path class="guide-line dim" d="M6,94 L14,94 L14,86"/>
-          <path class="guide-line dim" d="M94,94 L86,94 L86,86"/>
+          <path class="guide-line dim" d="M4,4 L12,4 L12,12"/>
+          <path class="guide-line dim" d="M96,4 L88,4 L88,12"/>
+          <path class="guide-line dim" d="M4,96 L12,96 L12,88"/>
+          <path class="guide-line dim" d="M96,96 L88,96 L88,88"/>
         </svg>
       </div>
       
@@ -395,7 +384,7 @@
       </div>
       <div class="scorebar">
         <div class="scorebar-label"><span>Liveness — Spatial (Pupil)</span><span id="score-spatial-val">—</span></div>
-        <div class="scorebar-track"><div class="scorebar-fill" id="score-spatial-bar" style="background:var(--spectral-magenta); width:0%;"></div></div>
+        <div class="scorebar-track"><div class="scorebar-fill" id="score-spatial-bar" style="background:var(--relaxing-blue); width:0%;"></div></div>
       </div>
       <div class="scorebar">
         <div class="scorebar-label"><span>Liveness — Spectral</span><span id="score-spectral-val">—</span></div>
@@ -423,7 +412,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script>
 /* ============================================================
-   KYC AURA — DEMO STATE (v0.4)
+   KYC AURA — DEMO STATE (v0.5)
    ============================================================ */
 const STATE = {
   enrolledVector: null,
@@ -502,8 +491,8 @@ function getFaceMesh(){
   return faceMesh;
 }
 
-/* ---------- ALIGNMENT TRACKING (FIX 2: TIGHTER REQUIREMENTS) ---------- */
-function checkFaceAlignment(landmarks, gridId, statusId, dotId, textId, boundaryId, markerLeftId, markerRightId){
+/* ---------- ALIGNMENT TRACKING ---------- */
+function checkFaceAlignment(landmarks, gridId, statusId, dotId, textId, boundaryId){
   if(!landmarks) return 0;
   
   const nose = landmarks[NOSE_TIP];
@@ -513,39 +502,32 @@ function checkFaceAlignment(landmarks, gridId, statusId, dotId, textId, boundary
   
   if(!nose || !lEye || !rEye || !chin) return 0;
   
-  // Calculate face metrics
   const centerX = (lEye.x + rEye.x) / 2;
   const centerY = (lEye.y + rEye.y) / 2;
   const faceWidth = Math.abs(lEye.x - rEye.x);
   const faceHeight = Math.abs(chin.y - (lEye.y + rEye.y)/2);
   
-  // TIGHTER requirements: face must be LARGER in frame (encourage closer position)
-  // Old: idealWidth = 0.18 (face ~18% of frame)
-  // New: idealWidth = 0.26 (face ~26% of frame — forces user closer)
   const idealWidth = 0.26;
   const idealHeight = 0.40;
   const idealCenterX = 0.50;
-  const idealCenterY = 0.48;
+  const idealCenterY = 0.50;
   
   const widthRatio = faceWidth / idealWidth;
   const heightRatio = faceHeight / idealHeight;
   const distX = Math.abs(centerX - idealCenterX);
   const distY = Math.abs(centerY - idealCenterY);
   
-  // SCORING: stricter
-  // Size score now heavily penalizes faces that are too small
   let sizeScore = 0;
   if (widthRatio >= 0.7 && widthRatio <= 1.5 && heightRatio >= 0.7 && heightRatio <= 1.5) {
     sizeScore = 1.0;
   } else if (widthRatio >= 0.5 && widthRatio <= 2.0 && heightRatio >= 0.5 && heightRatio <= 2.0) {
     sizeScore = 0.5;
   } else if (widthRatio < 0.4 || heightRatio < 0.4) {
-    sizeScore = 0.0; // Face too small — user needs to move CLOSER
+    sizeScore = 0.0;
   } else {
     sizeScore = 0.2;
   }
   
-  // Position score (tighter tolerance)
   let posScore = 0;
   if (distX < 0.03 && distY < 0.03) {
     posScore = 1.0;
@@ -559,10 +541,7 @@ function checkFaceAlignment(landmarks, gridId, statusId, dotId, textId, boundary
   
   const alignScore = (sizeScore * 0.6 + posScore * 0.4);
   
-  // Update UI
   const boundary = document.getElementById(boundaryId);
-  const markerL = document.getElementById(markerLeftId);
-  const markerR = document.getElementById(markerRightId);
   const statusEl = document.getElementById(statusId);
   const dotEl = document.getElementById(dotId);
   const textEl = document.getElementById(textId);
@@ -570,15 +549,11 @@ function checkFaceAlignment(landmarks, gridId, statusId, dotId, textId, boundary
   if(alignScore > 0.75){
     boundary.classList.remove('off');
     boundary.classList.add('aligned');
-    markerL.classList.add('aligned');
-    markerR.classList.add('aligned');
     dotEl.className = 'dot good';
     textEl.textContent = '✅ Face aligned';
     statusEl.textContent = 'Face aligned';
   } else if(alignScore > 0.45){
     boundary.classList.remove('aligned', 'off');
-    markerL.classList.remove('aligned');
-    markerR.classList.remove('aligned');
     dotEl.className = 'dot fair';
     if (widthRatio < 0.5 || heightRatio < 0.5) {
       textEl.textContent = '📱 Move closer';
@@ -591,8 +566,6 @@ function checkFaceAlignment(landmarks, gridId, statusId, dotId, textId, boundary
   } else {
     boundary.classList.remove('aligned');
     boundary.classList.add('off');
-    markerL.classList.remove('aligned');
-    markerR.classList.remove('aligned');
     dotEl.className = 'dot poor';
     if (widthRatio < 0.3 || heightRatio < 0.3) {
       textEl.textContent = '📱 Move closer';
@@ -630,7 +603,7 @@ function initEnrollCamera(){
       drawMeshDots(ctx, lm, canvasEl.width, canvasEl.height, '#34E7E7');
       ringEl.classList.add('tracking');
       
-      const alignScore = checkFaceAlignment(lm, 'enroll', 'status-enroll', 'align-dot-enroll', 'align-text-enroll', 'boundary-enroll', 'marker-left-enroll', 'marker-right-enroll');
+      const alignScore = checkFaceAlignment(lm, 'enroll', 'status-enroll', 'align-dot-enroll', 'align-text-enroll', 'boundary-enroll');
       
       if(alignScore > 0.75){
         if(!enrollHoldStart) enrollHoldStart = Date.now();
@@ -709,10 +682,10 @@ function initAuthCamera(){
     if(hasFace){
       const lm = results.multiFaceLandmarks[0];
       lastAuthLandmarks = lm;
-      drawMeshDots(ctx, lm, canvasEl.width, canvasEl.height, livenessRunning ? '#E14DFF' : '#34E7E7');
+      drawMeshDots(ctx, lm, canvasEl.width, canvasEl.height, livenessRunning ? '#91B2C7' : '#34E7E7');
       ringEl.classList.add('tracking');
       
-      const alignScore = checkFaceAlignment(lm, 'auth', 'status-auth', 'align-dot-auth', 'align-text-auth', 'boundary-auth', 'marker-left-auth', 'marker-right-auth');
+      const alignScore = checkFaceAlignment(lm, 'auth', 'status-auth', 'align-dot-auth', 'align-text-auth', 'boundary-auth');
 
       if(!livenessRunning && alignScore > 0.75){
         btn.disabled = false;
@@ -868,7 +841,7 @@ function generateRandomBorderTargets(count=5){
 function startLivenessChallenge(){
   if(!lastAuthLandmarks) return;
   document.getElementById('btn-start-liveness').disabled = true;
-  document.getElementById('auth-face-instructions').textContent = '👁️ Follow the magenta dot with your eyes as it moves around the screen.';
+  document.getElementById('auth-face-instructions').textContent = '👁️ Follow the Relaxing Blue dot with your eyes as it moves around the screen.';
   livenessRunning = true;
   livenessSamples = [];
   targetPath = generateRandomBorderTargets(5);
@@ -981,7 +954,7 @@ function finishLivenessChallenge(){
   }
   STATE.scores.face = faceScore;
 
-  console.log('=== KYC AURA RESULTS (v0.4) ===');
+  console.log('=== KYC AURA RESULTS (v0.5) ===');
   console.log('Face Score:', STATE.scores.face);
   console.log('Spatial Score (pupil):', STATE.scores.spatial);
   console.log('Spectral Score:', STATE.scores.spectral);
@@ -1001,7 +974,6 @@ function initPinAuth(){
       STATE.sessionPin += digit;
       renderDots('dots-auth', STATE.sessionPin.length, 4);
       if(STATE.sessionPin.length===4){
-        // FIX 3: PIN match uses a dedicated variable
         const pinMatch = (STATE.sessionPin === STATE.enrolledPin);
         STATE.scores.pinMatch = pinMatch;
         console.log('PIN entered:', STATE.sessionPin, 'Enrolled:', STATE.enrolledPin, 'Match:', pinMatch);
