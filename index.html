@@ -86,9 +86,22 @@
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
   .target{
-    position:absolute; width:22px; height:22px; border-radius:50%;
-    background:var(--spectral-magenta); box-shadow:0 0 20px var(--spectral-magenta);
-    transform:translate(-50%,-50%); transition: left .55s ease, top .55s ease;
+    position:absolute; width:32px; height:32px; border-radius:50%;
+    background:var(--spectral-magenta); 
+    box-shadow: 0 0 40px var(--spectral-magenta), 0 0 80px rgba(225,77,255,0.5);
+    transform:translate(-50%,-50%); 
+    transition: left 0.1s ease, top 0.1s ease;
+    z-index:10;
+    border:2px solid rgba(255,255,255,0.5);
+  }
+  .target .pulse-ring{
+    position:absolute; inset:-8px; border-radius:50%;
+    border:2px solid rgba(255,255,255,0.3);
+    animation: pulse-ring 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-ring{
+    0%,100%{ transform:scale(1); opacity:0.5; }
+    50%{ transform:scale(1.5); opacity:0; }
   }
 
   #spectral-flash{
@@ -184,13 +197,16 @@
   <section class="screen" id="screen-auth-face">
     <div class="eyebrow">Step 3 of 4 · Authenticate</div>
     <h2>Face + Liveness Check</h2>
-    <p class="sub" id="auth-face-instructions">Center your face. Then follow the magenta dot with your head as it moves.</p>
+    <p class="sub" id="auth-face-instructions">Center your face. Then follow the magenta dot with your head as it moves to the edges of the frame.</p>
     <div class="video-wrap">
       <video id="video-auth" autoplay playsinline muted></video>
       <canvas class="overlay" id="canvas-auth"></canvas>
       <div class="ring" id="ring-auth"></div>
-      <div class="target hidden" id="liveness-target"></div>
+      <div class="target hidden" id="liveness-target">
+        <div class="pulse-ring"></div>
+      </div>
       <div class="status-chip"><span class="dot-pulse"></span><span id="status-auth">Starting camera…</span></div>
+      <div id="target-counter" style="position:absolute; bottom:12px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:#fff; padding:4px 12px; border-radius:12px; font-size:12px; font-family:'JetBrains Mono',monospace; display:none; border:1px solid var(--line);">0 / 6</div>
     </div>
     <button class="btn-primary" id="btn-start-liveness" disabled onclick="startLivenessChallenge()">Begin Liveness Challenge</button>
   </section>
@@ -255,7 +271,6 @@ const STATE = {
 };
 
 // Key landmark indices we use for a lightweight "fingerprint"
-// (subset of MediaPipe's 468 — inter-feature distances, roughly scale/rotation tolerant)
 const FEATURE_PAIRS = [
   [33,263],   // outer eye to outer eye
   [1,152],    // nose tip to chin
@@ -289,7 +304,6 @@ function dist3(a,b){
 }
 
 function computeFingerprint(landmarks){
-  // Normalize by a stable reference (jaw width) so distance is scale-invariant
   const ref = dist3(landmarks[234], landmarks[454]) || 1;
   return FEATURE_PAIRS.map(([a,b]) => dist3(landmarks[a], landmarks[b]) / ref);
 }
@@ -402,6 +416,7 @@ let livenessSamples = []; // {t, targetX, targetY, noseX, noseY}
 let targetPath = [];
 let targetIndex = 0;
 let targetTimer = null;
+let spatialMovementData = [];
 
 function initAuthCamera(){
   const videoEl = document.getElementById('video-auth');
@@ -428,7 +443,13 @@ function initAuthCamera(){
       }
       if(livenessRunning){
         const nose = lm[NOSE_TIP];
-        livenessSamples.push({ t:Date.now(), nx: nose.x, ny: nose.y });
+        livenessSamples.push({ 
+          t:Date.now(), 
+          nx: nose.x, 
+          ny: nose.y,
+          tx: STATE._currentTargetPos?.x ?? 0.5,
+          ty: STATE._currentTargetPos?.y ?? 0.5
+        });
       }
     } else {
       lastAuthLandmarks = null;
@@ -463,13 +484,12 @@ function startSpectralLoop(){
     if(!livenessRunning) return;
     const color = pickNextColor();
     flashEl.style.background = color.css;
-    // brief settle window before sampling — lets the reflection register
     setTimeout(()=>{
       if(!livenessRunning) return;
       const sample = sampleIrisColor();
       if(sample) spectralSamples.push({ expected: color, measured: sample, t: Date.now() });
     }, 180);
-    const interval = 400 + Math.random()*300; // 400-700ms, matches patent's Spectral Vector
+    const interval = 400 + Math.random()*300;
     spectralTimer = setTimeout(tick, interval);
   }
   tick();
@@ -504,7 +524,6 @@ function sampleIrisColor(){
 
 function computeSpectralScore(samples){
   if(samples.length < 3) return 0;
-  // Baseline = average measured color across the session (removes ambient-light offset)
   const base = { r:0, g:0, b:0 };
   samples.forEach(s=>{ base.r+=s.measured.r; base.g+=s.measured.g; base.b+=s.measured.b; });
   base.r/=samples.length; base.g/=samples.length; base.b/=samples.length;
@@ -516,37 +535,56 @@ function computeSpectralScore(samples){
     const dot = dm.r*de.r + dm.g*de.g + dm.b*de.b;
     const magM = Math.sqrt(dm.r**2+dm.g**2+dm.b**2) || 1;
     const magE = Math.sqrt(de.r**2+de.g**2+de.b**2) || 1;
-    simSum += dot/(magM*magE); // -1..1, how well measured color shift direction matches flashed color
+    simSum += dot/(magM*magE);
   });
   const avgSim = simSum/samples.length;
-  return Math.max(0, Math.min(1, (avgSim+1)/2)); // normalize to 0..1
+  return Math.max(0, Math.min(1, (avgSim+1)/2));
 }
 
-function randomTargetPath(n=6){
-  const pts = [];
-  for(let i=0;i<n;i++){
-    pts.push({ x: 15 + Math.random()*70, y: 15 + Math.random()*70 }); // % of frame
+function generateBorderTargets(count=8){
+  // Generate targets at the corners and edges of the frame (far apart)
+  const positions = [
+    // Corners (extreme positions)
+    { x: 8, y: 8 },      // Top-left
+    { x: 92, y: 8 },     // Top-right
+    { x: 92, y: 92 },    // Bottom-right
+    { x: 8, y: 92 },     // Bottom-left
+    // Edge midpoints
+    { x: 50, y: 5 },     // Top-center
+    { x: 95, y: 50 },    // Right-center
+    { x: 50, y: 95 },    // Bottom-center
+    { x: 5, y: 50 },     // Left-center
+  ];
+  
+  // Shuffle and take first 'count' to keep it random each time
+  const shuffled = [...positions];
+  for(let i=shuffled.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  return pts;
+  return shuffled.slice(0, count);
 }
 
 function startLivenessChallenge(){
   if(!lastAuthLandmarks) return;
   document.getElementById('btn-start-liveness').disabled = true;
-  document.getElementById('auth-face-instructions').textContent = 'Follow the dot with your head — don\'t use your eyes only, move your head slightly.';
+  document.getElementById('auth-face-instructions').textContent = 'Follow the magenta dot with your head as it moves to the edges of the frame.';
   livenessRunning = true;
   livenessSamples = [];
-  targetPath = randomTargetPath(6);
+  spatialMovementData = [];
+  targetPath = generateBorderTargets(8);
   targetIndex = 0;
+  
+  const counterEl = document.getElementById('target-counter');
+  counterEl.style.display = 'block';
+  
   startSpectralLoop();
 
   const targetEl = document.getElementById('liveness-target');
   targetEl.classList.remove('hidden');
   const statusEl = document.getElementById('status-auth');
 
-  // record baseline nose position as "center" reference
-  const baselineNose = { x: lastAuthLandmarks[NOSE_TIP].x, y: lastAuthLandmarks[NOSE_TIP].y };
-  STATE._baselineNose = baselineNose;
+  STATE._baselineNose = { x: lastAuthLandmarks[NOSE_TIP].x, y: lastAuthLandmarks[NOSE_TIP].y };
 
   function showNext(){
     if(targetIndex >= targetPath.length){
@@ -556,11 +594,13 @@ function startLivenessChallenge(){
     const p = targetPath[targetIndex];
     targetEl.style.left = p.x + '%';
     targetEl.style.top = p.y + '%';
-    STATE._currentTargetShownAt = Date.now();
     STATE._currentTargetPos = p;
-    statusEl.textContent = `Tracking target ${targetIndex+1}/${targetPath.length}`;
+    STATE._currentTargetShownAt = Date.now();
+    statusEl.textContent = `🎯 Follow the dot — position ${targetIndex+1}/${targetPath.length}`;
+    counterEl.textContent = `${targetIndex+1} / ${targetPath.length}`;
     targetIndex++;
-    targetTimer = setTimeout(showNext, 900);
+    // 2-second dwell time per position
+    targetTimer = setTimeout(showNext, 2200);
   }
   showNext();
 }
@@ -570,31 +610,64 @@ function finishLivenessChallenge(){
   clearTimeout(targetTimer);
   stopSpectralLoop();
   document.getElementById('liveness-target').classList.add('hidden');
+  document.getElementById('target-counter').style.display = 'none';
   document.getElementById('status-auth').textContent = 'Challenge complete';
 
   // ---- SPATIAL SCORE ----
-  // Correlate nose-movement direction with target-position changes over the session.
-  // Simplified proxy for the patent's tracking-error formula: we compare the *variance*
-  // of nose movement to the *variance* of target movement — a real face tracking a
-  // moving target shows correlated motion; a static photo shows near-zero variance.
+  // Measure head movement magnitude toward target positions
+  // A live person will move their head toward each target (or at least have correlated motion)
+  // A static photo/video will show near-zero movement.
+  
   let spatialScore = 0;
   if(livenessSamples.length > 5){
-    const noseDX = [], noseDY = [];
-    for(let i=1;i<livenessSamples.length;i++){
-      noseDX.push(livenessSamples[i].nx - livenessSamples[i-1].nx);
-      noseDY.push(livenessSamples[i].ny - livenessSamples[i-1].ny);
+    // Calculate correlation between head movement direction and target direction
+    let correlationSum = 0;
+    let validSamples = 0;
+    
+    for(let i=1; i<livenessSamples.length; i++){
+      const prev = livenessSamples[i-1];
+      const curr = livenessSamples[i];
+      
+      // Head movement vector (normalized)
+      const headDx = curr.nx - prev.nx;
+      const headDy = curr.ny - prev.ny;
+      const headMag = Math.sqrt(headDx*headDx + headDy*headDy);
+      
+      // Target movement vector (normalized)
+      const targetDx = curr.tx - prev.tx;
+      const targetDy = curr.ty - prev.ty;
+      const targetMag = Math.sqrt(targetDx*targetDx + targetDy*targetDy);
+      
+      if(headMag > 0.0005 && targetMag > 0.01){
+        // Compute cosine similarity between head movement and target movement
+        const dot = headDx*targetDx + headDy*targetDy;
+        const norm = headMag * targetMag;
+        const similarity = Math.max(-1, Math.min(1, dot / norm));
+        // Similarity > 0 means moving in the same direction
+        // We want >= 0.3 for meaningful correlation
+        correlationSum += Math.max(0, similarity);
+        validSamples++;
+      }
     }
-    const variance = (arr)=>{ const m=arr.reduce((a,b)=>a+b,0)/arr.length; return arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length; };
-    const motionEnergy = variance(noseDX) + variance(noseDY);
-    // Map motion energy to a 0-1 score: too little movement (photo) = low score,
-    // reasonable tracking movement = high score, capped sensibly.
-    spatialScore = Math.min(1, motionEnergy * 4000);
+    
+    if(validSamples > 3){
+      const avgCorrelation = correlationSum / validSamples;
+      // Scale from 0-1: 0.3 correlation ~ 0.5 score, 0.8 correlation ~ 1.0 score
+      spatialScore = Math.min(1, (avgCorrelation - 0.2) / 0.6);
+    } else {
+      // Fallback: measure overall movement variance
+      const noseX = livenessSamples.map(s => s.nx);
+      const noseY = livenessSamples.map(s => s.ny);
+      const variance = (arr) => {
+        const m = arr.reduce((a,b) => a+b, 0) / arr.length;
+        return arr.reduce((a,b) => a + (b-m)*(b-m), 0) / arr.length;
+      };
+      const motionEnergy = variance(noseX) + variance(noseY);
+      spatialScore = Math.min(1, motionEnergy * 6000);
+    }
   }
-
+  
   // ---- TEMPORAL SCORE ----
-  // Proxy for injection detection: check frame-interval consistency (real camera
-  // streams have small, natural jitter; looped/replayed video often shows unnaturally
-  // uniform or unnaturally erratic intervals).
   let temporalScore = 0;
   if(livenessSamples.length > 5){
     const intervals = [];
@@ -603,7 +676,6 @@ function finishLivenessChallenge(){
     }
     const meanInt = intervals.reduce((a,b)=>a+b,0)/intervals.length;
     const jitter = intervals.reduce((a,b)=>a+Math.abs(b-meanInt),0)/intervals.length;
-    // natural webcam jitter is typically small but non-zero; score peaks in a healthy band
     const healthy = jitter > 2 && jitter < 60;
     temporalScore = healthy ? 0.9 : 0.4;
   }
@@ -611,10 +683,9 @@ function finishLivenessChallenge(){
   // ---- SPECTRAL SCORE ----
   const spectralScore = computeSpectralScore(spectralSamples);
 
-  STATE.scores.spatial = spatialScore;
-  STATE.scores.spectral = spectralScore;
-  STATE.scores.temporal = temporalScore;
-  // Patent's exact weighting: Spatial 0.40 + Spectral 0.35 + Temporal 0.25
+  STATE.scores.spatial = Math.max(0, Math.min(1, spatialScore));
+  STATE.scores.spectral = Math.max(0, Math.min(1, spectralScore));
+  STATE.scores.temporal = Math.max(0, Math.min(1, temporalScore));
   STATE.scores.combinedLiveness = (spatialScore*0.40) + (spectralScore*0.35) + (temporalScore*0.25);
 
   // ---- FACE MATCH ----
@@ -624,6 +695,14 @@ function finishLivenessChallenge(){
     faceScore = Math.max(0, cosineSim(STATE.enrolledVector, authVector));
   }
   STATE.scores.face = faceScore;
+
+  // Log details for debugging
+  console.log('Spatial samples:', livenessSamples.length);
+  console.log('Spatial score:', STATE.scores.spatial);
+  console.log('Spectral samples:', spectralSamples.length);
+  console.log('Spectral score:', STATE.scores.spectral);
+  console.log('Temporal score:', STATE.scores.temporal);
+  console.log('Combined liveness:', STATE.scores.combinedLiveness);
 
   stopCurrentCamera();
   setTimeout(()=>goTo('auth-pin'), 600);
@@ -641,7 +720,7 @@ function initPinAuth(){
         setTimeout(()=>showDecision(), 400);
       }
     }
-  }, true); // shuffled = true
+  }, true);
   renderDots('dots-auth', 0, 4);
 }
 
@@ -679,12 +758,11 @@ function renderKeypad(containerId, onPress, shuffle=false){
     };
     c.appendChild(el);
   });
-  // pad last row to keep grid tidy (10 digits -> 3x3 + 1)
 }
 
 function drawMeshDots(ctx, landmarks, w, h, color){
   ctx.fillStyle = color;
-  for(let i=0;i<landmarks.length;i+=3){ // sparse draw for performance
+  for(let i=0;i<landmarks.length;i+=3){
     const p = landmarks[i];
     ctx.beginPath();
     ctx.arc(p.x*w, p.y*h, 1.1, 0, Math.PI*2);
@@ -720,13 +798,11 @@ function stopCurrentCamera(){
 function showDecision(){
   goTo('decision');
   const s = STATE.scores;
-  const facePass = s.face >= 0.80;              // patent uses 0.85 on real embeddings; relaxed for this proxy metric
-  const spatialPass = s.spatial >= 0.35;         // calibrated loosely for this demo's motion-energy proxy
-  const spectralPass = s.spectral >= 0.5;        // noisy signal on typical webcams — see notes
+  const facePass = s.face >= 0.80;
+  const spatialPass = s.spatial >= 0.40;        // Increased threshold for better security
+  const spectralPass = s.spectral >= 0.5;
   const temporalPass = s.temporal >= 0.6;
-  // Patent decision rule uses one combined liveness score, not per-signal pass/fail.
-  // Real threshold is 0.75 on calibrated production signals; relaxed here for these proxy metrics.
-  const livenessPass = s.combinedLiveness >= 0.45;
+  const livenessPass = s.combinedLiveness >= 0.50;  // Adjusted for stricter scoring
   const pinPass = s.pinMatch;
   const allPass = facePass && livenessPass && pinPass;
 
@@ -750,9 +826,9 @@ function setBar(key, val, pass, isBinary=false){
   const bar = document.getElementById(`score-${key}-bar`);
   bar.style.width = (isBinary ? (pass?100:100) : pct) + '%';
   if(!pass) bar.style.background = 'var(--fail)';
+  else if(key !== 'pin') bar.style.background = 'var(--pass)';
 }
 
-/* Register SW for offline shell (best-effort) */
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js').catch(()=>{});
